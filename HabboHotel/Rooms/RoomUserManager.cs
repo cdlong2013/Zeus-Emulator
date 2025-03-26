@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Org.BouncyCastle.Asn1.X509;
 using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
@@ -16,6 +17,7 @@ using Plus.HabboHotel.Rooms.AI;
 using Plus.HabboHotel.Rooms.Games.Teams;
 using Plus.HabboHotel.Rooms.PathFinding;
 using Plus.HabboHotel.Rooms.Trading;
+using Plus.RolePlay;
 using Plus.Utilities;
 
 namespace Plus.HabboHotel.Rooms
@@ -626,166 +628,221 @@ namespace Plus.HabboHotel.Rooms
             {
                 List<RoomUser> ToRemove = new();
 
-                foreach (RoomUser user in GetUserList().ToList())
+                foreach (RoomUser User in GetUserList().ToList())
                 {
-                    if (user == null)
+                    if (User == null)
                         continue;
 
-                    if (!IsValid(user))
+                    if (!IsValid(User))
                     {
-                        if (user.GetClient() != null)
-                            RemoveUserFromRoom(user.GetClient(), false);
+                        if (User.GetClient() != null)
+                            RemoveUserFromRoom(User.GetClient(), false);
                         else
-                            RemoveRoomUser(user);
+                            RemoveRoomUser(User);
                     }
-                    if (!user.IsBot && !user.IsPet)
-                    
-                    if (user.NeedsAutoKick && !ToRemove.Contains(user))
+                    if (!User.IsBot && !User.IsPet)
+                       User.GetClient().GetRolePlay().GetTimer().OnCycle();
+                    if (User.cine_tile > 0)
                     {
-                        ToRemove.Add(user);
+                        User.cine_timer--;
+                        if (User.cine_timer < 1)
+                        {
+                            Item Item = _room.GetRoomItemHandler().GetItem(User.cine_tile);
+                            if (Item != null)
+                            {
+                                int Distance = Math.Abs(User.X - Item.GetX) + Math.Abs(User.Y - Item.GetY);
+                                if (Distance == 0)
+                                    User.cine_timer = 2;
+                                else
+                                {
+                                    Item.ExtraData = "0";
+                                    Item.UpdateState(false, true);
+                                    User.cine_tile = 0;
+                                }
+                            }
+                            else
+                            {
+                                User.cine_tile = 0;
+                                User.cine_timer = 0;
+                            }
+                        }
+                    }
+                    if (User.jailgate > 0)
+                    {
+                        User.jailgate_timer--;
+                        if (User.jailgate_timer < 1)
+                        {
+                            Item Item = _room.GetRoomItemHandler().GetItem(User.jailgate);
+                            if (Item != null)
+                            {
+                                int Distance = Math.Abs(User.X - Item.GetX) + Math.Abs(User.Y - Item.GetY);
+                                if (Distance == 0)
+                                    User.jailgate_timer = 2;
+                                else
+                                {
+                                    Item.ExtraData = "0";
+                                    Item.UpdateState(false, true);
+                                    User.jailgate = 0;
+                                }
+                            }
+                            else
+                            {
+                                User.jailgate = 0;
+                                User.jailgate_timer = 0;
+                            }
+                            if (!User.IsBot && !User.IsPet)
+                            {
+                                User.GetClient().GetRolePlay().ExCon = false;
+                                User.GetClient().GetRolePlay().RPCache(30);
+                            }
+                        }
+                    }
+                    if (User.NeedsAutoKick && !ToRemove.Contains(User))
+                    {
+                        ToRemove.Add(User);
                         continue;
                     }
                     
                     bool updated = false;
-                    user.IdleTime++;
-                    user.HandleSpamTicks();
-                    if (!user.IsBot && !user.IsAsleep && user.IdleTime >= 600)
+                    User.IdleTime++;
+                    User.HandleSpamTicks();
+                    if (!User.IsBot && !User.IsAsleep && User.IdleTime >= 600)
                     {
-                        user.IsAsleep = true;
-                        _room.SendPacket(new SleepComposer(user.VirtualId, true));
+                        User.IsAsleep = true;
+                        _room.SendPacket(new SleepComposer(User.VirtualId, true));
                     }
 
-                    if (user.CarryItemId > 0)
+                    if (User.CarryItemId > 0)
                     {
-                        user.CarryTimer--;
-                        if (user.CarryTimer <= 0)
-                            user.CarryItem(0);
+                        User.CarryTimer--;
+                        if (User.CarryTimer <= 0)
+                            User.CarryItem(0);
                     }
 
                     if (_room.GotFreeze())
-                        _room.GetFreeze().CycleUser(user);
+                        _room.GetFreeze().CycleUser(User);
 
                     bool invalidStep = false;
                     
-                    if (user.IsRolling)
+                    if (User.IsRolling)
                     {
-                        if (user.RollerDelay <= 0)
+                        if (User.RollerDelay <= 0)
                         {
-                            UpdateUserStatus(user, false);
-                            user.IsRolling = false;
+                            UpdateUserStatus(User, false);
+                            User.IsRolling = false;
                         }
                         else
-                            user.RollerDelay--;
+                            User.RollerDelay--;
                     }
 
-                    if (user.SetStep)
+                    if (User.SetStep)
                     {
-                        if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(user.SetX, user.SetY), (user.GoalX == user.SetX && user.GoalY == user.SetY), user.AllowOverride))
+                        if (_room.GetGameMap().IsValidStep2(User, new Vector2D(User.X, User.Y), new Vector2D(User.SetX, User.SetY), (User.GoalX == User.SetX && User.GoalY == User.SetY), User.AllowOverride))
                         {
-                            if (!user.RidingHorse)
-                                _room.GetGameMap().UpdateUserMovement(new Point(user.Coordinate.X, user.Coordinate.Y), new Point(user.SetX, user.SetY), user);
+                            if (!User.RidingHorse)
+                                _room.GetGameMap().UpdateUserMovement(new Point(User.Coordinate.X, User.Coordinate.Y), new Point(User.SetX, User.SetY), User);
 
-                            List<Item> items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
+                            List<Item> items = _room.GetGameMap().GetCoordinatedItems(new Point(User.X, User.Y));
                             foreach (Item item in items.ToList())
                             {
-                                item.UserWalksOffFurni(user);
+                                item.UserWalksOffFurni(User);
                             }
 
-                            if (!user.IsBot)
+                            if (!User.IsBot)
                             {
-                                user.X = user.SetX;
-                                user.Y = user.SetY;
-                                user.Z = user.SetZ;
+                                User.X = User.SetX;
+                                User.Y = User.SetY;
+                                User.Z = User.SetZ;
                             }
-                            else if (user.IsBot && !user.RidingHorse)
+                            else if (User.IsBot && !User.RidingHorse)
                             {
-                                user.X = user.SetX;
-                                user.Y = user.SetY;
-                                user.Z = user.SetZ;
+                                User.X = User.SetX;
+                                User.Y = User.SetY;
+                                User.Z = User.SetZ;
                             }
 
-                            if (!user.IsBot && user.RidingHorse)
+                            if (!User.IsBot && User.RidingHorse)
                             {
-                                RoomUser horse = GetRoomUserByVirtualId(user.HorseId);
+                                RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
                                 if (horse != null)
                                 {
-                                    horse.X = user.SetX;
-                                    horse.Y = user.SetY;
+                                    horse.X = User.SetX;
+                                    horse.Y = User.SetY;
                                 }
                             }
 
-                            if (user.X == _room.GetGameMap().Model.DoorX && user.Y == _room.GetGameMap().Model.DoorY && !ToRemove.Contains(user) && !user.IsBot)
+                            if (User.X == _room.GetGameMap().Model.DoorX && User.Y == _room.GetGameMap().Model.DoorY && !ToRemove.Contains(User) && !User.IsBot)
                             {
-                                ToRemove.Add(user);
+                                ToRemove.Add(User);
                                 continue;
                             }
 
-                            List<Item> Items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
+                            List<Item> Items = _room.GetGameMap().GetCoordinatedItems(new Point(User.X, User.Y));
                             foreach (Item item in Items.ToList())
                             {
-                                item.UserWalksOnFurni(user);
+                                item.UserWalksOnFurni(User);
                             }
 
-                            UpdateUserStatus(user, true);
+                            UpdateUserStatus(User, true);
                         }
                         else
                             invalidStep = true;
 
-                        user.SetStep = false;
+                        User.SetStep = false;
                     }
 
-                    if (user.PathRecalcNeeded)
+                    if (User.PathRecalcNeeded)
                     {
-                        if (user.Path.Count > 1)
-                            user.Path.Clear();
+                        if (User.Path.Count > 1)
+                            User.Path.Clear();
 
-                        user.Path = PathFinder.FindPath(user, _room.GetGameMap().DiagonalEnabled, _room.GetGameMap(), new Vector2D(user.X, user.Y), new Vector2D(user.GoalX, user.GoalY));
+                        User.Path = PathFinder.FindPath(User, _room.GetGameMap().DiagonalEnabled, _room.GetGameMap(), new Vector2D(User.X, User.Y), new Vector2D(User.GoalX, User.GoalY));
 
-                        if (user.Path.Count > 1)
+                        if (User.Path.Count > 1)
                         {
-                            user.PathStep = 1;
-                            user.IsWalking = true;
-                            user.PathRecalcNeeded = false;
+                            User.PathStep = 1;
+                            User.IsWalking = true;
+                            User.PathRecalcNeeded = false;
                         }
                         else
                         {
-                            user.PathRecalcNeeded = false;
-                            if (user.Path.Count > 1)
-                                user.Path.Clear();
+                            User.PathRecalcNeeded = false;
+                            if (User.Path.Count > 1)
+                                User.Path.Clear();
                         }
                     }
 
-                    if (user.IsWalking && !user.Freezed)
+                    if (User.IsWalking && !User.Freezed)
                     {
-                        if (invalidStep || (user.PathStep >= user.Path.Count) || (user.GoalX == user.X && user.GoalY == user.Y)) //No path found, or reached goal (:
+                        if (invalidStep || (User.PathStep >= User.Path.Count) || (User.GoalX == User.X && User.GoalY == User.Y)) //No path found, or reached goal (:
                         {
-                            user.IsWalking = false;
-                            user.RemoveStatus("mv");
+                            User.IsWalking = false;
+                            User.RemoveStatus("mv");
 
-                            if (user.Statusses.ContainsKey("sign"))
-                                user.RemoveStatus("sign");
+                            if (User.Statusses.ContainsKey("sign"))
+                                User.RemoveStatus("sign");
 
-                            if (user.IsBot && user.BotData.TargetUser > 0)
+                            if (User.IsBot && User.BotData.TargetUser > 0)
                             {
-                                if (user.CarryItemId > 0)
+                                if (User.CarryItemId > 0)
                                 {
-                                    RoomUser target = _room.GetRoomUserManager().GetRoomUserByHabbo(user.BotData.TargetUser);
+                                    RoomUser target = _room.GetRoomUserManager().GetRoomUserByHabbo(User.BotData.TargetUser);
 
-                                    if (target != null && Gamemap.TilesTouching(user.X, user.Y, target.X, target.Y))
+                                    if (target != null && Gamemap.TilesTouching(User.X, User.Y, target.X, target.Y))
                                     {
-                                        user.SetRot(Rotation.Calculate(user.X, user.Y, target.X, target.Y), false);
-                                        target.SetRot(Rotation.Calculate(target.X, target.Y, user.X, user.Y), false);
-                                        target.CarryItem(user.CarryItemId);
+                                        User.SetRot(Rotation.Calculate(User.X, User.Y, target.X, target.Y), false);
+                                        target.SetRot(Rotation.Calculate(target.X, target.Y, User.X, User.Y), false);
+                                        target.CarryItem(User.CarryItemId);
                                     }
                                 }
 
-                                user.CarryItem(0);
-                                user.BotData.TargetUser = 0;
+                                User.CarryItem(0);
+                                User.BotData.TargetUser = 0;
                             }
 
-                            if (user.RidingHorse && user.IsPet == false && !user.IsBot)
+                            if (User.RidingHorse && User.IsPet == false && !User.IsBot)
                             {
-                                RoomUser mascotaVinculada = GetRoomUserByVirtualId(user.HorseId);
+                                RoomUser mascotaVinculada = GetRoomUserByVirtualId(User.HorseId);
                                 if (mascotaVinculada != null)
                                 {
                                     mascotaVinculada.IsWalking = false;
@@ -796,26 +853,26 @@ namespace Plus.HabboHotel.Rooms
                         }
                         else
                         {
-                            Vector2D nextStep = user.Path[(user.Path.Count - user.PathStep) - 1];
-                            user.PathStep++;
+                            Vector2D nextStep = User.Path[(User.Path.Count - User.PathStep) - 1];
+                            User.PathStep++;
 
-                            if (user.FastWalking && user.PathStep < user.Path.Count)
+                            if (User.FastWalking && User.PathStep < User.Path.Count)
                             {
-                                int s2 = (user.Path.Count - user.PathStep) - 1;
-                                nextStep = user.Path[s2];
-                                user.PathStep++;
+                                int s2 = (User.Path.Count - User.PathStep) - 1;
+                                nextStep = User.Path[s2];
+                                User.PathStep++;
                             }
 
-                            if (user.SuperFastWalking && user.PathStep < user.Path.Count)
+                            if (User.SuperFastWalking && User.PathStep < User.Path.Count)
                             {
-                                int s2 = (user.Path.Count - user.PathStep) - 1;
-                                nextStep = user.Path[s2];
-                                user.PathStep++;
-                                user.PathStep++;
+                                int s2 = (User.Path.Count - User.PathStep) - 1;
+                                nextStep = User.Path[s2];
+                                User.PathStep++;
+                                User.PathStep++;
                             }
                             #region cine tile
-                            if ((!user.IsBot && (user.GetClient().GetRolePlay().JobManager.Working || user.GetClient().GetHabbo().Rank > 4))
-                                || (user.IsBot))
+                            if ((!User.IsBot && (User.GetClient().GetRolePlay().JobManager.Working || User.GetClient().GetHabbo().Rank > 4))
+                                || (User.IsBot))
                                 foreach (Item Item in _room.GetRoomItemHandler().GetFurniObjects(nextStep.X, nextStep.Y).ToList())
                                 {
                                     if (Item.BaseItem == 89929)
@@ -824,123 +881,282 @@ namespace Plus.HabboHotel.Rooms
                                         Item.UpdateState(false, true);
 
 
-                                        if (user.cine_tile > 0)
+                                        if (User.cine_tile > 0)
                                         {
-                                            Item item = _room.GetRoomItemHandler().GetItem(user.cine_tile);
+                                            Item item = _room.GetRoomItemHandler().GetItem(User.cine_tile);
                                             if (Item != null)
                                             {
                                                 item.ExtraData = "0";
                                                 item.UpdateState(false, true);
-                                                user.cine_tile = 0;
-                                                user.cine_timer = 0;
+                                                User.cine_tile = 0;
+                                                User.cine_timer = 0;
                                             }
                                         }
-                                        user.cine_tile = Item.Id;
-                                        user.cine_timer = 2;
+                                        User.cine_tile = Item.Id;
+                                        User.cine_timer = 2;
                                     }
                                 }
                             #endregion
                             #region prison gate
-                            if ((!user.IsBot && (user.GetClient().GetRolePlay().JobManager.Working || user.GetClient().GetHabbo().Rank > 4 || user.GetClient().GetRolePlay().ExCon))
-                                || (user.IsBot))
+                            if ((!User.IsBot && (User.GetClient().GetRolePlay().JobManager.Working || User.GetClient().GetHabbo().Rank > 4 || User.GetClient().GetRolePlay().ExCon))
+                                || (User.IsBot))
                                 foreach (Item Item in _room.GetRoomItemHandler().GetFurniObjects(nextStep.X, nextStep.Y).ToList())
                                 {
                                     if (Item.BaseItem == 39912)
                                     {
                                         Item.ExtraData = "1";
                                         Item.UpdateState(false, true);
-                                        if (user.jailgate > 0)
+                                        if (User.jailgate > 0)
                                         {
-                                            Item item = _room.GetRoomItemHandler().GetItem(user.jailgate);
+                                            Item item = _room.GetRoomItemHandler().GetItem(User.jailgate);
                                             if (Item != null)
                                             {
                                                 item.ExtraData = "0";
                                                 item.UpdateState(false, true);
-                                                user.jailgate = 0;
-                                                user.jailgate_timer = 0;
+                                                User.jailgate = 0;
+                                                User.jailgate_timer = 0;
                                             }
                                         }
-                                        user.jailgate = Item.Id;
-                                        user.jailgate_timer = 2;
+                                        User.jailgate = Item.Id;
+                                        User.jailgate_timer = 2;
                                     }
                                 }
                             #endregion
 
                             int nextX = nextStep.X;
                             int nextY = nextStep.Y;
-                            user.RemoveStatus("mv");
+                            User.RemoveStatus("mv");
 
-                            if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(nextX, nextY), (user.GoalX == nextX && user.GoalY == nextY), user.AllowOverride))
+                            if (_room.GetGameMap().IsValidStep2(User, new Vector2D(User.X, User.Y), new Vector2D(nextX, nextY), (User.GoalX == nextX && User.GoalY == nextY), User.AllowOverride))
                             {
                                 double nextZ = _room.GetGameMap().SqAbsoluteHeight(nextX, nextY);
 
-                                if (!user.IsBot)
+                                if (!User.IsBot)
                                 {
-                                    if (user.IsSitting)
+                                    if (User.IsSitting)
                                     {
-                                        user.Statusses.Remove("sit");
-                                        user.Z += 0.35;
-                                        user.IsSitting = false;
-                                        user.UpdateNeeded = true;
+                                        User.Statusses.Remove("sit");
+                                        User.Z += 0.35;
+                                        User.IsSitting = false;
+                                        User.UpdateNeeded = true;
                                     }
-                                    else if (user.IsLying)
+                                    else if (User.IsLying)
                                     {
-                                        user.Statusses.Remove("sit");
-                                        user.Z += 0.35;
-                                        user.IsLying = false;
-                                        user.UpdateNeeded = true;
-                                    }
-                                }
-
-                                if (!user.IsBot)
-                                {
-                                    user.Statusses.Remove("lay");
-                                    user.Statusses.Remove("sit");
-                                }
-
-                                if (!user.IsBot && !user.IsPet && user.GetClient() != null)
-                                {
-                                    if (user.GetClient().GetHabbo().IsTeleporting)
-                                    {
-                                        user.GetClient().GetHabbo().IsTeleporting = false;
-                                        user.GetClient().GetHabbo().TeleportId = 0;
-                                    }
-                                    else if (user.GetClient().GetHabbo().IsHopping)
-                                    {
-                                        user.GetClient().GetHabbo().IsHopping = false;
-                                        user.GetClient().GetHabbo().HopperId = 0;
+                                        User.Statusses.Remove("sit");
+                                        User.Z += 0.35;
+                                        User.IsLying = false;
+                                        User.UpdateNeeded = true;
                                     }
                                 }
 
-                                if (!user.IsBot && user.RidingHorse && user.IsPet == false)
+                                if (!User.IsBot)
                                 {
-                                    RoomUser horse = GetRoomUserByVirtualId(user.HorseId);
+                                    User.Statusses.Remove("lay");
+                                    User.Statusses.Remove("sit");
+                                }
+
+                                if (!User.IsBot && !User.IsPet && User.GetClient() != null)
+                                {
+                                    if (User.GetClient().GetHabbo().IsTeleporting)
+                                    {
+                                        User.GetClient().GetHabbo().IsTeleporting = false;
+                                        User.GetClient().GetHabbo().TeleportId = 0;
+                                    }
+                                    else if (User.GetClient().GetHabbo().IsHopping)
+                                    {
+                                        User.GetClient().GetHabbo().IsHopping = false;
+                                        User.GetClient().GetHabbo().HopperId = 0;
+                                    }
+                                }
+
+                                if (!User.IsBot && User.RidingHorse && User.IsPet == false)
+                                {
+                                    RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
                                     horse?.SetStatus("mv", nextX + "," + nextY + "," + TextHandling.GetString(nextZ));
 
-                                    user.SetStatus("mv", +nextX + "," + nextY + "," + TextHandling.GetString(nextZ + 1));
+                                    User.SetStatus("mv", +nextX + "," + nextY + "," + TextHandling.GetString(nextZ + 1));
 
-                                    user.UpdateNeeded = true;
+                                    User.UpdateNeeded = true;
                                     horse.UpdateNeeded = true;
                                 }
                                 else
-                                    user.SetStatus("mv", nextX + "," + nextY + "," + TextHandling.GetString(nextZ));
+                                    User.SetStatus("mv", nextX + "," + nextY + "," + TextHandling.GetString(nextZ));
 
-                                int newRot = Rotation.Calculate(user.X, user.Y, nextX, nextY, user.MoonwalkEnabled);
+                                int newRot = Rotation.Calculate(User.X, User.Y, nextX, nextY, User.MoonwalkEnabled);
 
-                                user.RotBody = newRot;
-                                user.RotHead = newRot;
+                                User.RotBody = newRot;
+                                User.RotHead = newRot;
 
-                                user.SetStep = true;
-                                user.SetX = nextX;
-                                user.SetY = nextY;
-                                user.SetZ = nextZ;
-                                UpdateUserEffect(user, user.SetX, user.SetY);
+                                User.SetStep = true;
+                                User.SetX = nextX;
+                                User.SetY = nextY;
+                                User.SetZ = nextZ;
+                                UpdateUserEffect(User, User.SetX, User.SetY);
 
                                 updated = true;
 
-                                if (user.RidingHorse && user.IsPet == false && !user.IsBot)
+                                #region Escort Movement
+                                if (!User.IsBot && !User.IsPet && User.GetClient().GetRolePlay().Escorting > 0)
                                 {
-                                    RoomUser horse = GetRoomUserByVirtualId(user.HorseId);
+                                    var user = GetRoomUserByHabbo(User.GetClient().GetRolePlay().Escorting);
+                                    if (user != null)
+                                    {
+                                        var roomUser = User;
+                                        if (User.AllowOverride != true)
+                                            User.AllowOverride = true;
+                                        if (User.GetClient().GetRolePlay().JobManager.Job == 7 && User.GetClient().GetRolePlay().JobManager.Working)
+                                        {
+                                            if (newRot == 0)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX, roomUser.SetY + 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 1)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX - 1, roomUser.SetY + 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 2)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX - 1, roomUser.SetY);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 3)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX - 1, roomUser.SetY - 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 4)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX, roomUser.SetY - 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 5)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX + 1, roomUser.SetY - 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 6)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX + 1, roomUser.SetY);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 7)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX + 1, roomUser.SetY + 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            if (User.RotBody != user.RotBody)
+                                                user.GetClient().GetRolePlay().SetRot(User.RotBody);
+                                        }
+                                        else
+                                        {
+                                            user.GetClient().GetRolePlay().Warp(roomUser.SetX, roomUser.SetY);
+                                            if (newRot == 0)
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY - 1);
+                                            else if (newRot == 1)
+                                                user.MoveTo(roomUser.SetX + 1, roomUser.SetY - 1);
+                                            else if (newRot == 2)
+                                                user.MoveTo(roomUser.SetX + 1, roomUser.SetY);
+                                            else if (newRot == 3)
+                                                user.MoveTo(roomUser.SetX + 1, roomUser.SetY + 1);
+                                            else if (newRot == 4)
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY + 1);
+                                            else if (newRot == 5)
+                                                user.MoveTo(roomUser.SetX - 1, roomUser.SetY + 1);
+                                            else if (newRot == 6)
+                                                user.MoveTo(roomUser.SetX - 1, roomUser.SetY);
+                                            else if (newRot == 7)
+                                                user.MoveTo(roomUser.SetX - 1, roomUser.SetY - 1);
+                                            if (User.RotBody != user.RotBody)
+                                                user.GetClient().GetRolePlay().SetRot(User.RotBody);
+                                        }
+                                    }
+                                }
+                                if (User.IsBot && User.BotData.Escorting > 0)
+                                {
+                                    var user = GetRoomUserByHabbo(User.BotData.Escorting);
+                                    if (user != null)
+                                    {
+                                        var roomUser = User;
+                                        if (User.AllowOverride != true)
+                                            User.AllowOverride = true;
+                                        if (User.BotData.Job == 1 || User.BotData.Job == 4 || User.BotData.Job == 8)
+                                        {
+                                            user.GetClient().GetRolePlay().Warp(roomUser.SetX, roomUser.SetY);
+                                            user.SetStatus("mv", "");
+                                            if (newRot == 0)
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY - 1);
+                                            else if (newRot == 1)
+                                                user.MoveTo(roomUser.SetX + 1, roomUser.SetY - 1);
+                                            else if (newRot == 2)
+                                                user.MoveTo(roomUser.SetX + 1, roomUser.SetY);
+                                            else if (newRot == 3)
+                                                user.MoveTo(roomUser.SetX + 1, roomUser.SetY + 1);
+                                            else if (newRot == 4)
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY + 1);
+                                            else if (newRot == 5)
+                                                user.MoveTo(roomUser.SetX - 1, roomUser.SetY + 1);
+                                            else if (newRot == 6)
+                                                user.MoveTo(roomUser.SetX - 1, roomUser.SetY);
+                                            else if (newRot == 7)
+                                                user.MoveTo(roomUser.SetX - 1, roomUser.SetY - 1);
+                                            if (User.RotBody != user.RotBody)
+                                                user.GetClient().GetRolePlay().SetRot(User.RotBody);
+                                        }
+                                        else if (User.BotData.Job == 2)
+                                        {
+                                            if (newRot == 0)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX, roomUser.SetY + 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 1)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX - 1, roomUser.SetY + 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 2)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX - 1, roomUser.SetY);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 3)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX - 1, roomUser.SetY - 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 4)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX, roomUser.SetY - 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 5)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX + 1, roomUser.SetY - 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 6)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX + 1, roomUser.SetY);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            else if (newRot == 7)
+                                            {
+                                                user.GetClient().GetRolePlay().Warp(roomUser.SetX + 1, roomUser.SetY + 1);
+                                                user.MoveTo(roomUser.SetX, roomUser.SetY);
+                                            }
+                                            if (User.RotBody != user.RotBody)
+                                                user.GetClient().GetRolePlay().SetRot(User.RotBody);
+                                        }
+                                    }
+                                }
+                                #endregion
+
+
+                                if (User.RidingHorse && User.IsPet == false && !User.IsBot)
+                                {
+                                    RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
                                     if (horse != null)
                                     {
                                         horse.RotBody = newRot;
@@ -953,8 +1169,8 @@ namespace Plus.HabboHotel.Rooms
                                     }
                                 }
 
-                                _room.GetGameMap().GameMap[user.X, user.Y] = user.SqState; // REstore the old one
-                                user.SqState = _room.GetGameMap().GameMap[user.SetX, user.SetY]; //Backup the new one
+                                _room.GetGameMap().GameMap[User.X, User.Y] = User.SqState; // REstore the old one
+                                User.SqState = _room.GetGameMap().GameMap[User.SetX, User.SetY]; //Backup the new one
 
                                 if (_room.RoomBlockingEnabled == 0)
                                 {
@@ -967,19 +1183,19 @@ namespace Plus.HabboHotel.Rooms
                             }
                         }
 
-                        if (!user.RidingHorse)
-                            user.UpdateNeeded = true;
+                        if (!User.RidingHorse)
+                            User.UpdateNeeded = true;
                     }
                     else
                     {
-                        if (user.Statusses.ContainsKey("mv"))
+                        if (User.Statusses.ContainsKey("mv"))
                         {
-                            user.RemoveStatus("mv");
-                            user.UpdateNeeded = true;
+                            User.RemoveStatus("mv");
+                            User.UpdateNeeded = true;
 
-                            if (user.RidingHorse)
+                            if (User.RidingHorse)
                             {
-                                RoomUser horse = GetRoomUserByVirtualId(user.HorseId);
+                                RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
                                 if (horse != null)
                                 {
                                     horse.RemoveStatus("mv");
@@ -989,17 +1205,17 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
-                    if (user.RidingHorse)
-                        user.ApplyEffect(77);
+                    if (User.RidingHorse)
+                        User.ApplyEffect(77);
 
-                    if (user.IsBot && user.BotAI != null)
-                        user.BotAI.OnTimerTick();
+                    if (User.IsBot && User.BotAI != null)
+                        User.BotAI.OnTimerTick();
                     else
                         userCounter++;
 
                     if (!updated)
                     {
-                        UpdateUserEffect(user, user.X, user.Y);
+                        UpdateUserEffect(User, User.X, User.Y);
                     }
                 }
 

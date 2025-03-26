@@ -284,65 +284,94 @@ namespace Plus.HabboHotel.Rooms
 
             return null;
         }
+        //public RoomData GenerateRoomData(int RoomId)
+        //{
+        //    Console.WriteLine("GenerateRoomData trying to gather..");
+        //    return null;
+        //    if (_loadedRoomData.ContainsKey(RoomId))
+        //        return (RoomData)_loadedRoomData[RoomId];
+
+        //     //RoomData Data = new RoomData();
+
+        //    Room Room;
+
+        //    if (TryGetRoom(RoomId, out Room))
+        //        return Room.RoomData;
+
+        //    DataRow Row = null;
+        //    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+        //    {
+        //        dbClient.SetQuery("SELECT * FROM rooms WHERE id = " + RoomId + " LIMIT 1");
+        //        Row = dbClient.GetRow();
+        //    }
+
+        //    if (Row == null)
+        //        return null;
+
+        //    // Data.Fill(Row);
+
+        //    if (!_loadedRoomData.ContainsKey(RoomId))
+        //        // _loadedRoomData.TryAdd(RoomId, Data);
+
+        //        return null;
+        //}
+
         public RoomData GenerateRoomData(int RoomId)
         {
-            Console.WriteLine("GenerateRoomData trying to gather..");
-            return null;
-            if (_loadedRoomData.ContainsKey(RoomId))
-                return (RoomData)_loadedRoomData[RoomId];
+           // if (_loadedRoomData.ContainsKey(RoomId))
+              //  return (RoomData)_loadedRoomData[RoomId];
 
-             //RoomData Data = new RoomData();
+            
+            Room room;
+            
 
-            Room Room;
-
-            if (TryGetRoom(RoomId, out Room))
-                return Room.RoomData;
+            if (TryGetRoom(RoomId, out room))
+                return room.RoomData;
 
             DataRow Row = null;
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
                 dbClient.SetQuery("SELECT * FROM rooms WHERE id = " + RoomId + " LIMIT 1");
                 Row = dbClient.GetRow();
+
+                if (Row != null)
+                    return null;
+
+                //  if (!_loadedRoomData.ContainsKey(RoomId))
+                return null;
             }
 
-            if (Row == null)
-                return null;
-
-            // Data.Fill(Row);
-
-            if (!_loadedRoomData.ContainsKey(RoomId))
-                // _loadedRoomData.TryAdd(RoomId, Data);
-
-                return null;
         }
+
+
         public Room LoadRoom(int Id)
         {
-            Console.WriteLine("Caleb.. I'm trying to load a room!");
-            Room Room = null;
+            Room room = null;
 
-            if (TryGetRoom(Id, out Room))
-                return Room;
+            if (TryGetRoom(Id, out room))
+                return room;
 
             RoomData Data = GenerateRoomData(Id);
             if (Data == null)
                 return null;
 
-            Room = new Room(Data);
+            room = new Room(Data);
 
-            if (!_rooms.ContainsKey(Room.RoomId))
-                _rooms.TryAdd(Room.RoomId, Room);
+            if (!_rooms.ContainsKey(room.RoomId))
+                _rooms.TryAdd(room.RoomId, room);
+
             if (Id == 2 || Id == 5)
-                Room.BotsAllowed += 1;
+                room.BotsAllowed += 1;
             if (Id == 3)
             {
                 using (IQueryAdapter DB = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     DB.SetQuery("SELECT code FROM vault");
-                    Room.VaultCode = DB.GetString();
+                    room.VaultCode = DB.GetString();
                 }
             }
-            return Room;
-      
+
+            return room;
         }
 
         public RoomData CreateRoom(GameClient session, string name, string description, int category, int maxVisitors, int tradeSettings, RoomModel model, string wallpaper = "0.0", string floor = "0.0", string landscape = "0.0", int wallThick = 0, int floorThick = 0)

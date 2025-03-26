@@ -30,12 +30,14 @@ using Plus.HabboHotel.Users.Messenger.FriendBar;
 using Plus.HabboHotel.Users.UserData;
 using Plus.Network.Codec;
 using Plus.RolePlay;
+using Plus.RolePlay.Timer;
 
 namespace Plus.HabboHotel.GameClients
 {
     public class GameClient
     {
         private RPData RP;
+        private RolePlayTimer RPTimer;
         private Habbo _habbo;
         public string MachineId;
         public ARC4 RC4Client = null;
@@ -114,13 +116,14 @@ namespace Plus.HabboHotel.GameClients
                     }
                     SendPacket(new AuthenticationOkComposer());
                     SendPacket(new AvatarEffectsComposer(_habbo.Effects().GetAllEffects));
-                   // if (userData.User.HomeRoom != 2 && GetRolePlay().Dead)
-                     //   userData.User.HomeRoom = 2;
+                    if (userData.User.HomeRoom != 2 && GetRolePlay().Dead)
+                        userData.User.HomeRoom = 2;
                     SendPacket(new NavigatorSettingsComposer(_habbo.HomeRoom));
                    // Room Room = PlusEnvironment.GetGame().GetRoomManager().LoadRoom(userData.User.HomeRoom);
                 
                     //if (Room == null)
                      //   userData.User.HomeRoom = 1;
+
                     SendPacket(new FavouritesComposer(userData.User.FavoriteRooms));
                     SendPacket(new FigureSetIdsComposer(_habbo.GetClothing().GetClothingParts));
                     SendPacket(new UserRightsComposer(_habbo.Rank));
@@ -252,6 +255,10 @@ namespace Plus.HabboHotel.GameClients
         public RPData GetRolePlay()
         {
             return RP;
+        }
+        public RolePlayTimer RpTimer()
+        {
+            return RPTimer; 
         }
         public void CreateStats()
         {

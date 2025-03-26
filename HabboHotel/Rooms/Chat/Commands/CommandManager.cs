@@ -1062,7 +1062,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                         if (roomid > 0)
                             session.GetRolePlay().Taxi(roomid);
                         else
-                            session.SendWhisper("Por favor, insira um ID de quarto válido!");
+                            session.SendWhisper("Please provide a valid RoomID!");
                         return true;
                     }
 
@@ -1203,19 +1203,20 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                             if (id == 1)
                             {
                                 This.Room.PlacePolice(This.Room.Id, 8);
-                                This.Say("summons a police bot", false);
+                                This.Say("requests police assistance", true, 23);
                             }
                             else if (id == 2)
                             {
                                 This.Room.PlaceMedic(This.Room.Id, This.roomUser.X, This.roomUser.Y);
-                                This.Say("summons a medic bot", false);
+                                This.Say("requests medical assistance", true, 23);
                             }
                             else if (id == 3)
                             {
                                 This.Room.PlaceServant(This.Room.Id, This.roomUser.X, This.roomUser.Y);
-                                This.Say("summons a servant bot", false);
+                                This.Say("requests a bartender", true, 23);
                             }
                             This.dubCooldown = 5;
+                            
                             // else if
                         }
 

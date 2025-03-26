@@ -380,6 +380,7 @@ namespace Plus.RolePlay
 
         public RolePlayTimer GetTimer()
         {
+            RPTimer = new RolePlayTimer(this);
             return RPTimer;
         }
 
@@ -1043,11 +1044,11 @@ namespace Plus.RolePlay
         }
         public void Stun(string name)
         {
-            if (!Inventory.Equip1.Contains("stun"))
-            {
-                GetClient().SendWhisper("You must equip a taser before performing this action.");
-                return;
-            }
+            //if (!Inventory.Equip1.Contains("stun"))
+            //{
+            //    GetClient().SendWhisper("You must equip a taser before performing this action.");
+            //    return;
+            //}
 
             if (subCooldown > 0 || Energy < 1)
             {
