@@ -308,15 +308,79 @@ namespace Plus.HabboHotel.GameClients
             SendPacket(new VoucherRedeemErrorComposer(Convert.ToInt32(Message)));
         }
 
-        public void Dispose()
+        public void Dispose(bool dc)
         {
-            if (GetHabbo() != null)
-                GetHabbo().OnDisconnect();
+            if (dc && GetHabbo() != null)
+            {
+                if (GetHabbo().FriendCount > 0)
+                {
+                    foreach (MessengerBuddy buddy in GetHabbo().GetMessenger().GetFriends())
+                    {
+                        if (buddy.IsOnline && buddy.Client != this)
+                            buddy.Client.GetRolePlay().SendWeb("{\"name\":\"sidealert\", \"evnt\":\"offline\", \"name1\":\"" + GetHabbo().Username + "\", \"color\":\"" + GetRolePlay().Color + "\"}");
+                    }
+                }
+                log("" + GetHabbo().Username + " logged out");
+                if (GetRolePlay().onduty)
+                {
+                    GetRolePlay().onduty = false;
+                    GetHabbo().GetClientManager().STAFFactive--;
+                }
+                if (GetRolePlay().roomUser.IsWalking)
+                    GetRolePlay().roomUser.ClearMovement(true);
+                if (GetRolePlay().Gang > 0)
+                    GetRolePlay().SaveGangStats();
+                if (GetRolePlay().WeedTimer > 0)
+                    GetRolePlay().RPCache(23);
+                GetRolePlay().SetHomeRoom();
+                if (GetRolePlay().EscortID > 0)
+                {
+                    var user = GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(GetRolePlay().EscortID);
+                    if (user != null && user.GetClient().GetRolePlay().JobManager.Job == 1 && user.GetClient().GetRolePlay().JobManager.Working)
+                        GetRolePlay().Jailed = 5;
+                }
+                if (GetRolePlay().EscortID > 0 || GetRolePlay().Escorting > 0)
+                    GetRolePlay().EndEscort();
+               // GetRolePlay().Room.SendPacket(new SleepComposer(GetRolePlay().roomUser, true));
+                GetRolePlay().roomUser.IsAsleep = true;
+                GetRolePlay().roomUser.Stunned = 60;
+                GetRolePlay().roomUser.OnChat(34, "" + GetHabbo().Username + " is logging out", false);
+                GetRolePlay().AutoLogout = 8;
+                GetRolePlay().roomUser.ApplyEffect(13);
+                GetRolePlay().RPCache(24);
+                GetRolePlay().RPCache(10);
+                if (GetRolePlay().ExCon)
+                    GetRolePlay().RPCache(30);
+                if (GetRolePlay().JobManager.Working)
+                    GetRolePlay().Stopwork(false);
+                if (GetRolePlay().GameType == "Brawl")
+                    GetRolePlay().Room.Brawl -= 1;
+                if (GetRolePlay().Trade.Trading && !GetRolePlay().roomUser.IsTrading)
+                {
+                    RoomUser User = GetRolePlay().Room.GetRoomUserManager().GetRoomUserByHabbo(GetRolePlay().TradeTarget);
+                    User.GetClient().GetRolePlay().Trade.StopTrade();
+                    User.GetClient().SendWhisper(GetHabbo().Username + " canceled the trade!");
+                    GetRolePlay().Trade.TradeTimer = 0;
+                    User.GetClient().GetRolePlay().Trade.TradeTimer = 0;
+                    GetRolePlay().Trade.StopTrade();
+                }
+                GetRolePlay().Inventory.ItemCache(0, true);
+                if (GetRolePlay().Storage.Curstorage > 0)
+                    GetRolePlay().Storage.StorageCache(0, true);
+            }
+            else
+            {
+                if (GetHabbo() != null)
+                    GetHabbo().OnDisconnect();
+                this.MachineId = string.Empty;
+                this._disconnected = true;
+                this._habbo = null;
+                this.RP = null;
+               // this._connection = null;
+                this.RC4Client = null;
+               // this._packetParser = null;
+            }
 
-            MachineId = string.Empty;
-            _disconnected = true;
-            _habbo = null;
-            _channel.DisconnectAsync();
         }
 
         public void EnableEncryption(byte[] sharedKey)

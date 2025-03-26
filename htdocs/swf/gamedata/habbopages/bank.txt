@@ -1,0 +1,7 @@
+Bank
+<span class="padding-top"><br></span><h3>Opening a bank account</h3><span class="padding-bottom"><br></span>
+<span class="padding-top"><br></span><p>To open a bank account ask one the staff.</p><span class="padding-bottom"><br></span>
+<span class="padding-top"><br></span><h3>ATM</h3><span class="padding-bottom"><br></span>
+<span class="padding-top"><br></span><p>Once you have a bank account you will be able to use the ATM, simply stand infront of it and double click it!</p><span class="padding-bottom"><br></span>
+<span class="padding-top"><br></span><h3>Job Commands</h3><span class="padding-bottom"><br></span>
+<span class="padding-top"><br></span><p>:setaccount x - opens a new bank account for the target.</p><p>:setcode code - manager command to change the vault code.</p><span class="padding-bottom"><br></span>

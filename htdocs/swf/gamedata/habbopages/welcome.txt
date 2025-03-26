@@ -1,0 +1,3 @@
+Welcome
+<span class="padding-top"><br></span><h3>Welcome</h3><span class="padding-bottom"><br></span>
+<span class="padding-top"><br></span><p>Welcome to HabboRP, stepping on the arrows will take you to the hospital!</p><span class="padding-bottom"><br></span>

@@ -1,0 +1,100 @@
+body {
+        background-color: #1F1F1F;
+}
+.login {
+        background-color:#0F0F0F;
+        border-radius:0.3vw;
+        width:100%;
+        max-width:500px;
+        padding:2rem;
+        position:relative;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgb(0,0,0 .3);
+}
+.login-container {
+        display:flex;
+        align-items: center;
+        justify-content: center;
+        position:relative;
+        margin:2rem;
+        
+}
+hr {
+        
+        display: block;
+        height: 1px;
+        border: 0;
+        border-top: 1px solid #272727;;
+        margin: 1em 0;
+        padding: 0;
+}
+.login-container label {
+        display:flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .875rem;
+        font-weight:600;
+        color:#0F7AA0;
+        margin-bottom:.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+}
+.online {
+
+        color:#0F7AA0;
+}
+.login-content {
+        max-width:1000px;
+        width:100%;
+        margin:auto;
+        
+}
+.login-form {
+        display:flex;
+        flex-direction: column;
+        row-gap:2rem;
+}
+input[type=text] {
+        border-radius:0.3vw;
+        padding: 1.3rem 1rem;
+        transition: all .3 ease;
+        font-size:1rem;
+        background-color: #1F1F1F;
+        border:none;
+        transition:0.3s;
+        color:#FFFFFF;
+}
+input[type=text]:focus {
+        outline: solid #0F7AA0;;
+        transition:0.3s;
+}
+input[type=password] {
+        border-radius:0.3vw;
+        padding: 1.3rem 1rem;
+        transition: all .3 ease;
+        font-size:1rem;
+        background-color: #1F1F1F;
+        border:none;
+        color:#FFFFFF;
+}
+input[type=password]:focus {
+        outline: solid #0F7AA0;;
+        transition:0.3s;
+}
+.enter {
+        width:100%;
+        padding:1.5rem;
+        background: linear-gradient(45deg, rgba(15,122,160,1) 0%, rgba(15,122,160,1)  100%);
+        border:none;
+        color:#FFFFFF;
+        border-radius:0.3vw;
+        transition:0.5s;
+        font-size:1rem;
+}
+.enter:hover {
+        content: '';
+        transition:0.5s;
+        cursor: pointer;
+        border: solid #054eba 2px;
+        filter: blur(0.3px);
+}

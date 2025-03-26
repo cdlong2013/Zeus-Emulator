@@ -620,28 +620,30 @@ namespace Plus.HabboHotel.Rooms
             return true;
         }
 
+
         public void OnCycle()
         {
             int userCounter = 0;
 
             try
             {
-                List<RoomUser> ToRemove = new();
+                List<RoomUser> ToRemove = new List<RoomUser>();
 
                 foreach (RoomUser User in GetUserList().ToList())
                 {
+
                     if (User == null)
                         continue;
-
                     if (!IsValid(User))
                     {
                         if (User.GetClient() != null)
-                            RemoveUserFromRoom(User.GetClient(), false);
+                            RemoveUserFromRoom(User.GetClient(), false, false);
                         else
                             RemoveRoomUser(User);
                     }
                     if (!User.IsBot && !User.IsPet)
-                       User.GetClient().GetRolePlay().GetTimer().OnCycle();
+                        // User.GetClient().GetRolePlay().RPTimer.OnCycle();
+                        User.GetClient().GetRolePlay().GetTimer().OnCycle();
                     if (User.cine_tile > 0)
                     {
                         User.cine_timer--;
@@ -697,24 +699,31 @@ namespace Plus.HabboHotel.Rooms
                             }
                         }
                     }
-                    if (User.NeedsAutoKick && !ToRemove.Contains(User))
-                    {
-                        ToRemove.Add(User);
-                        continue;
-                    }
-                    
                     bool updated = false;
                     User.IdleTime++;
                     User.HandleSpamTicks();
-                    if (!User.IsBot && !User.IsAsleep && User.IdleTime >= 600)
+                    if (!User.IsBot && !User.IsAsleep)
                     {
-                        User.IsAsleep = true;
-                        _room.SendPacket(new SleepComposer(User.VirtualId, true));
+                        if (User.IdleTime >= 300 || User.GetClient().GetRolePlay().isSleeping && User.IdleTime >= 15)
+                        {
+                            if (User.GetClient().GetRolePlay().GameType != "" && User.GetRoom().Id == 23)
+                                User.GetClient().GetRolePlay().LeaveGame(true, true);
+                            User.IsAsleep = true;
+                            if (User.GetClient().GetRolePlay().JobManager.Working)
+                                User.GetClient().GetRolePlay().Stopwork(false);
+                           // else _room.SendPacket(new SleepComposer(User, true));
+                        }
                     }
 
                     if (User.CarryItemId > 0)
                     {
                         User.CarryTimer--;
+                        if (User.HabboId > 0)
+                        {
+                            User.GetClient().GetRolePlay().itemtimer--;
+                            if (User.CarryTimer <= 0)
+                                User.GetClient().GetRolePlay().item = 0;
+                        }
                         if (User.CarryTimer <= 0)
                             User.CarryItem(0);
                     }
@@ -722,8 +731,8 @@ namespace Plus.HabboHotel.Rooms
                     if (_room.GotFreeze())
                         _room.GetFreeze().CycleUser(User);
 
-                    bool invalidStep = false;
-                    
+                    bool InvalidStep = false;
+
                     if (User.IsRolling)
                     {
                         if (User.RollerDelay <= 0)
@@ -743,9 +752,9 @@ namespace Plus.HabboHotel.Rooms
                                 _room.GetGameMap().UpdateUserMovement(new Point(User.Coordinate.X, User.Coordinate.Y), new Point(User.SetX, User.SetY), User);
 
                             List<Item> items = _room.GetGameMap().GetCoordinatedItems(new Point(User.X, User.Y));
-                            foreach (Item item in items.ToList())
+                            foreach (Item Item in items.ToList())
                             {
-                                item.UserWalksOffFurni(User);
+                                Item.UserWalksOffFurni(User);
                             }
 
                             if (!User.IsBot)
@@ -763,31 +772,23 @@ namespace Plus.HabboHotel.Rooms
 
                             if (!User.IsBot && User.RidingHorse)
                             {
-                                RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
-                                if (horse != null)
+                                RoomUser Horse = GetRoomUserByVirtualId(User.HorseId);
+                                if (Horse != null)
                                 {
-                                    horse.X = User.SetX;
-                                    horse.Y = User.SetY;
+                                    Horse.X = User.SetX;
+                                    Horse.Y = User.SetY;
                                 }
                             }
 
-                            if (User.X == _room.GetGameMap().Model.DoorX && User.Y == _room.GetGameMap().Model.DoorY && !ToRemove.Contains(User) && !User.IsBot)
-                            {
-                                ToRemove.Add(User);
-                                continue;
-                            }
-
                             List<Item> Items = _room.GetGameMap().GetCoordinatedItems(new Point(User.X, User.Y));
-                            foreach (Item item in Items.ToList())
+                            foreach (Item Item in Items.ToList())
                             {
-                                item.UserWalksOnFurni(User);
+                                Item.UserWalksOnFurni(User);
                             }
-
                             UpdateUserStatus(User, true);
                         }
                         else
-                            invalidStep = true;
-
+                            InvalidStep = true;
                         User.SetStep = false;
                     }
 
@@ -795,9 +796,7 @@ namespace Plus.HabboHotel.Rooms
                     {
                         if (User.Path.Count > 1)
                             User.Path.Clear();
-
-                        User.Path = PathFinder.FindPath(User, _room.GetGameMap().DiagonalEnabled, _room.GetGameMap(), new Vector2D(User.X, User.Y), new Vector2D(User.GoalX, User.GoalY));
-
+                        User.Path = PathFinder.FindPath(User, this._room.GetGameMap().DiagonalEnabled, this._room.GetGameMap(), new Vector2D(User.X, User.Y), new Vector2D(User.GoalX, User.GoalY));
                         if (User.Path.Count > 1)
                         {
                             User.PathStep = 1;
@@ -814,7 +813,8 @@ namespace Plus.HabboHotel.Rooms
 
                     if (User.IsWalking && !User.Freezed)
                     {
-                        if (invalidStep || (User.PathStep >= User.Path.Count) || (User.GoalX == User.X && User.GoalY == User.Y)) //No path found, or reached goal (:
+                        if (InvalidStep || (User.PathStep >= User.Path.Count) || (User.GoalX == User.X && User.GoalY == User.Y)) //No path found, or reached goal (:
+                                                                                                                                 // if (!ArrowPath && (InvalidStep || (User.PathStep >= User.Path.Count) || (User.GoalX == User.X && User.GoalY == User.Y))) //No path found, or reached goal (:
                         {
                             User.IsWalking = false;
                             User.RemoveStatus("mv");
@@ -826,13 +826,13 @@ namespace Plus.HabboHotel.Rooms
                             {
                                 if (User.CarryItemId > 0)
                                 {
-                                    RoomUser target = _room.GetRoomUserManager().GetRoomUserByHabbo(User.BotData.TargetUser);
+                                    RoomUser Target = _room.GetRoomUserManager().GetRoomUserByHabbo(User.BotData.TargetUser);
 
-                                    if (target != null && Gamemap.TilesTouching(User.X, User.Y, target.X, target.Y))
+                                    if (Target != null && Gamemap.TilesTouching(User.X, User.Y, Target.X, Target.Y))
                                     {
-                                        User.SetRot(Rotation.Calculate(User.X, User.Y, target.X, target.Y), false);
-                                        target.SetRot(Rotation.Calculate(target.X, target.Y, User.X, User.Y), false);
-                                        target.CarryItem(User.CarryItemId);
+                                        User.SetRot(Rotation.Calculate(User.X, User.Y, Target.X, Target.Y), false);
+                                        Target.SetRot(Rotation.Calculate(Target.X, Target.Y, User.X, User.Y), false);
+                                        Target.CarryItem(User.CarryItemId);
                                     }
                                 }
 
@@ -853,27 +853,18 @@ namespace Plus.HabboHotel.Rooms
                         }
                         else
                         {
-                            Vector2D nextStep = User.Path[(User.Path.Count - User.PathStep) - 1];
+                            Vector2D NextStep = User.Path[(User.Path.Count - User.PathStep) - 1];
                             User.PathStep++;
-
-                            if (User.FastWalking && User.PathStep < User.Path.Count)
+                            if ((User.FastWalking || User.SuperFastWalking) && User.PathStep < User.Path.Count)
                             {
                                 int s2 = (User.Path.Count - User.PathStep) - 1;
-                                nextStep = User.Path[s2];
-                                User.PathStep++;
-                            }
-
-                            if (User.SuperFastWalking && User.PathStep < User.Path.Count)
-                            {
-                                int s2 = (User.Path.Count - User.PathStep) - 1;
-                                nextStep = User.Path[s2];
-                                User.PathStep++;
+                                NextStep = User.Path[s2];
                                 User.PathStep++;
                             }
                             #region cine tile
                             if ((!User.IsBot && (User.GetClient().GetRolePlay().JobManager.Working || User.GetClient().GetHabbo().Rank > 4))
                                 || (User.IsBot))
-                                foreach (Item Item in _room.GetRoomItemHandler().GetFurniObjects(nextStep.X, nextStep.Y).ToList())
+                                foreach (Item Item in _room.GetRoomItemHandler().GetFurniObjects(NextStep.X, NextStep.Y).ToList())
                                 {
                                     if (Item.BaseItem == 89929)
                                     {
@@ -900,7 +891,7 @@ namespace Plus.HabboHotel.Rooms
                             #region prison gate
                             if ((!User.IsBot && (User.GetClient().GetRolePlay().JobManager.Working || User.GetClient().GetHabbo().Rank > 4 || User.GetClient().GetRolePlay().ExCon))
                                 || (User.IsBot))
-                                foreach (Item Item in _room.GetRoomItemHandler().GetFurniObjects(nextStep.X, nextStep.Y).ToList())
+                                foreach (Item Item in _room.GetRoomItemHandler().GetFurniObjects(NextStep.X, NextStep.Y).ToList())
                                 {
                                     if (Item.BaseItem == 39912)
                                     {
@@ -923,14 +914,12 @@ namespace Plus.HabboHotel.Rooms
                                 }
                             #endregion
 
-                            int nextX = nextStep.X;
-                            int nextY = nextStep.Y;
+                            int nextX = NextStep.X;
+                            int nextY = NextStep.Y;
                             User.RemoveStatus("mv");
-
                             if (_room.GetGameMap().IsValidStep2(User, new Vector2D(User.X, User.Y), new Vector2D(nextX, nextY), (User.GoalX == nextX && User.GoalY == nextY), User.AllowOverride))
                             {
                                 double nextZ = _room.GetGameMap().SqAbsoluteHeight(nextX, nextY);
-
                                 if (!User.IsBot)
                                 {
                                     if (User.IsSitting)
@@ -948,7 +937,6 @@ namespace Plus.HabboHotel.Rooms
                                         User.UpdateNeeded = true;
                                     }
                                 }
-
                                 if (!User.IsBot)
                                 {
                                     User.Statusses.Remove("lay");
@@ -971,13 +959,14 @@ namespace Plus.HabboHotel.Rooms
 
                                 if (!User.IsBot && User.RidingHorse && User.IsPet == false)
                                 {
-                                    RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
-                                    horse?.SetStatus("mv", nextX + "," + nextY + "," + TextHandling.GetString(nextZ));
+                                    RoomUser Horse = GetRoomUserByVirtualId(User.HorseId);
+                                    if (Horse != null)
+                                        Horse.SetStatus("mv", nextX + "," + nextY + "," + TextHandling.GetString(nextZ));
 
                                     User.SetStatus("mv", +nextX + "," + nextY + "," + TextHandling.GetString(nextZ + 1));
 
                                     User.UpdateNeeded = true;
-                                    horse.UpdateNeeded = true;
+                                    Horse.UpdateNeeded = true;
                                 }
                                 else
                                     User.SetStatus("mv", nextX + "," + nextY + "," + TextHandling.GetString(nextZ));
@@ -1153,36 +1142,33 @@ namespace Plus.HabboHotel.Rooms
                                 }
                                 #endregion
 
-
                                 if (User.RidingHorse && User.IsPet == false && !User.IsBot)
                                 {
-                                    RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
-                                    if (horse != null)
+                                    RoomUser Horse = GetRoomUserByVirtualId(User.HorseId);
+                                    if (Horse != null)
                                     {
-                                        horse.RotBody = newRot;
-                                        horse.RotHead = newRot;
+                                        Horse.RotBody = newRot;
+                                        Horse.RotHead = newRot;
 
-                                        horse.SetStep = true;
-                                        horse.SetX = nextX;
-                                        horse.SetY = nextY;
-                                        horse.SetZ = nextZ;
+                                        Horse.SetStep = true;
+                                        Horse.SetX = nextX;
+                                        Horse.SetY = nextY;
+                                        Horse.SetZ = nextZ;
                                     }
                                 }
-
                                 _room.GetGameMap().GameMap[User.X, User.Y] = User.SqState; // REstore the old one
                                 User.SqState = _room.GetGameMap().GameMap[User.SetX, User.SetY]; //Backup the new one
-
                                 if (_room.RoomBlockingEnabled == 0)
                                 {
-                                    RoomUser users = _room.GetRoomUserManager().GetUserForSquare(nextX, nextY);
-                                    if (users != null)
+                                    RoomUser Users = _room.GetRoomUserManager().GetUserForSquare(nextX, nextY);
+                                    if (Users != null)
                                         _room.GetGameMap().GameMap[nextX, nextY] = 0;
                                 }
                                 else
                                     _room.GetGameMap().GameMap[nextX, nextY] = 1;
                             }
-                        }
 
+                        }
                         if (!User.RidingHorse)
                             User.UpdateNeeded = true;
                     }
@@ -1195,11 +1181,11 @@ namespace Plus.HabboHotel.Rooms
 
                             if (User.RidingHorse)
                             {
-                                RoomUser horse = GetRoomUserByVirtualId(User.HorseId);
-                                if (horse != null)
+                                RoomUser Horse = GetRoomUserByVirtualId(User.HorseId);
+                                if (Horse != null)
                                 {
-                                    horse.RemoveStatus("mv");
-                                    horse.UpdateNeeded = true;
+                                    Horse.RemoveStatus("mv");
+                                    Horse.UpdateNeeded = true;
                                 }
                             }
                         }
@@ -1214,18 +1200,14 @@ namespace Plus.HabboHotel.Rooms
                         userCounter++;
 
                     if (!updated)
-                    {
                         UpdateUserEffect(User, User.X, User.Y);
-                    }
                 }
 
                 foreach (RoomUser toRemove in ToRemove.ToList())
                 {
                     GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(toRemove.HabboId);
                     if (client != null)
-                    {
-                        RemoveUserFromRoom(client, true);
-                    }
+                        RemoveUserFromRoom(client, true, false);
                     else
                         RemoveRoomUser(toRemove);
                 }
@@ -1235,7 +1217,11 @@ namespace Plus.HabboHotel.Rooms
             }
             catch (Exception e)
             {
-                ExceptionLogger.LogCriticalException(e);
+                int rId = 0;
+                if (_room != null)
+                    rId = _room.Id;
+
+                //Logging.LogCriticalException("Affected Room - ID: " + rId + " - " + e.ToString());
             }
         }
 

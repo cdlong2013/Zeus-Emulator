@@ -97,7 +97,7 @@ namespace Plus.RolePlay.Timer
                                 }
                             }
                         }
-                        RP.client.Dispose();
+                        RP.client.Dispose(false);
                     }
                 }
                 if (RP.achievetimer > 0)
@@ -1312,7 +1312,7 @@ namespace Plus.RolePlay.Timer
                                     }
                                 }
                             }
-                            RP.client.Dispose();
+                            RP.client.Dispose(false);
                         }
                     }
                     if (RP.achievetimer > 0)

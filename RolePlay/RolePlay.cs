@@ -34,6 +34,7 @@ using Plus.RolePlay.Storage;
 using Plus.RolePlay.Job;
 using MySqlX.XDevAPI;
 using static System.Collections.Specialized.BitVector32;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Plus.RolePlay
 {
@@ -1115,8 +1116,8 @@ namespace Plus.RolePlay
                     User.Stunned = 7;
                 else User.BotData.Stunned = true;
                 if (User.IsPet)
-                    Say("fires their stungun at " + name + "", true, 37);
-                else Say("fires their stungun at " + name + "", true, 37);
+                    Say("fires their stungun at " + name + "", true, 4);
+                else Say("fires their stungun at " + name + "", true, 4);
                 UpdateEnergy(25, 2);
             }
             else if (dis > 2 && dis < 7)
@@ -1426,7 +1427,7 @@ namespace Plus.RolePlay
             Cuffed = false;
             ArrestChange();
             if (Room.Id != 9 && !Loggedin)
-                RoomForward(9, 3);
+                RoomForward(20,0);
             else
             {
                 Refresh();
@@ -1453,15 +1454,15 @@ namespace Plus.RolePlay
             XP += Amount;
             RPCache(4);
             XPSystem();
-            if (Gang > 0)
-            {
-                foreach (GameClient _client in habbo.GetClientManager()._clients.Values.ToList())
-                {
-                    if (_client.GetRolePlay().Gang == Gang)
-                        _client.GetRolePlay().GangManager.UpdateGang(Amount / 2);
-                }
-                GangManager.SaveGang();
-            }
+            // todo if (Gang > 0)
+            //{
+            //    foreach (GameClient _client in habbo.GetClientManager()._clients.Values.ToList())
+            //    {
+            //        if (_client.GetRolePlay().Gang == Gang)
+            //            _client.GetRolePlay().GangManager.UpdateGang(Amount / 2);
+            //    }
+            //    GangManager.SaveGang();
+            //}
             client.SendPacket(new HabboActivityPointNotificationComposer(0, 0));
             SendWeb("{\"name\":\"sidealert\", \"evnt\":\"xp\", \"xpalert\":\"" + Amount + "\"}");
         }
@@ -2072,6 +2073,7 @@ namespace Plus.RolePlay
                 return;
             if (roomUser.IsAsleep)
                 roomUser.UnIdle();
+           
             message = message + "*";
             prevName = habbo.Username;
             habbo.Username = "*<font color='" + GetClient().GetRolePlay().Color + "'>" + habbo.Username + "</font>";

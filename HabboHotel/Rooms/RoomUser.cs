@@ -497,21 +497,107 @@ namespace Plus.HabboHotel.Rooms
 
         public void SetPos(int pX, int pY, double pZ)
         {
-            X = pX;
-            Y = pY;
-            Z = pZ;
+
+            if (this.HabboId > 0)
+            {
+                var This = GetClient().GetRolePlay();
+                if (This.item > 0)
+                    CarryItem(This.item, This.itemtimer);
+                if (This.Loggedin)
+                    //This.LoadStats();
+                This.DisplayRoomInfo = true;
+                if (This.Dead)
+                {
+                    This.BedSetup();
+                    X = This.RoomX;
+                    Y = This.RoomY;
+                    Z = pZ;
+                    RotBody = This.Rotate;
+                    RotHead = This.Rotate;
+                    Statusses.Add("lay", "2.0 null");
+                    Z -= 0.35;
+                    UpdateNeeded = true;
+                    Stunned = 9999;
+                    if (This.Loggedin)
+                        This.Loggedin = false;
+                }
+                else if (This.Loggedin)
+                {
+                    This.Loggedin = false;
+                    if (GetRoom().Id == 9 && This.Jailed == 0 && This.JailedSec == 0)
+                    {
+                        // set coordinate for new logins to spawn in jail
+                        X = GetRoom().GetGameMap().Model.DoorX;
+                        Y = GetRoom().GetGameMap().Model.DoorY;
+                        Z = GetRoom().GetGameMap().Model.DoorZ;
+                    }
+                    else
+                    {
+                        if (GetRoom().GetGameMap().Path(This.RoomX, This.RoomY, this))
+                        {
+                            X = This.RoomX;
+                            Y = This.RoomY;
+                            Z = pZ;
+                        }
+                        else
+                        {
+
+                            X = GetRoom().GetGameMap().Model.DoorX;
+                            Y = GetRoom().GetGameMap().Model.DoorY;
+                            Z = GetRoom().GetGameMap().Model.DoorZ;
+                        }
+                    }
+                    This.RoomX = 0;
+                    This.RoomY = 0;
+                }
+                else
+                {
+                    X = pX;
+                    Y = pY;
+                    Z = pZ;
+
+                }
+            }
+            else
+            {
+                X = pX;
+                Y = pY;
+                Z = pZ;
+            }
         }
 
-        public void CarryItem(int item)
+        public void CarryItem(int Item, int timer = 0)
         {
-            CarryItemId = item;
+            CarryItemId = Item;
 
-            if (item > 0)
-                CarryTimer = 240;
+            if (Item > 0)
+            {
+                if (timer > 0)
+                    CarryTimer = timer;
+                else CarryTimer = 240;
+                if (HabboId > 0)
+                {
+                    if (timer == 0)
+                    {
+                        GetClient().GetRolePlay().item = Item;
+                        GetClient().GetRolePlay().itemtimer = 240;
+                    }
+                }
+            }
             else
-                CarryTimer = 0;
+            {
+                if (!IsBot)
+                {
+                    GetClient().GetRolePlay().item = 0;
+                    GetClient().GetRolePlay().itemtimer = 0;
+                }
 
-            GetRoom().SendPacket(new CarryObjectComposer(VirtualId, item));
+                CarryTimer = 0;
+                EatItem = 0;
+            }
+            if (!IsBot && (CurrentEffect == 592 || CurrentEffect == 591))
+                ApplyEffect(0);
+            GetRoom().SendPacket(new CarryObjectComposer(VirtualId, Item));
         }
 
 

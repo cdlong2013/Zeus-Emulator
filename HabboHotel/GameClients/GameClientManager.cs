@@ -141,8 +141,8 @@ namespace Plus.HabboHotel.GameClients
                 return;
             foreach (GameClient client in this._clients.Values.ToList())
             {
-                if (client != null)
-                    client.GetRolePlay().SendWeb(data);
+                // todo if (client != null)
+                    //client.GetRolePlay().SendWeb(data);
             }
         }
         public void StaffAlert(MessageComposer message, int exclude = 0)
@@ -250,9 +250,9 @@ namespace Plus.HabboHotel.GameClients
             if (!TryGetClient(clientId, out Client))
                 return;
             if (Client != null && Client.GetRolePlay() != null)
-                Client.Dispose();
+                Client.Dispose(false);
             else
-                Client.Dispose();
+                Client.Dispose(false);
 
             _clients.TryRemove(clientId, out Client);
         }
@@ -527,7 +527,7 @@ namespace Plus.HabboHotel.GameClients
 
                     try
                     {
-                        client.Dispose();
+                        client.Dispose(false);
                     }
                     catch
                     {

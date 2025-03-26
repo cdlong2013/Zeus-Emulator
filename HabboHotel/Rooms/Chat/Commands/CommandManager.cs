@@ -500,7 +500,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                                 session.SendWhisper("This user is not logged in.");
                                 return true;
                             }
-                            if (!User.IsBot && (This.Room.RoomId == 5 || User.GetClient().GetRolePlay().AutoLogout > 0))
+                            if (!User.IsBot && (This.Room.RoomId == 10 || User.GetClient().GetRolePlay().AutoLogout > 0))
                             { }
                             else
                             {
