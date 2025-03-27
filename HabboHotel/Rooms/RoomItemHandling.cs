@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Org.BouncyCastle.Asn1.X509;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
@@ -567,7 +568,7 @@ namespace Plus.HabboHotel.Rooms
 
                     RoomUser rollerUser = _room.GetGameMap().GetRoomUsers(roller.Coordinate).FirstOrDefault();
 
-                    if (rollerUser != null && !rollerUser.IsWalking && nextRollerClear && _room.GetGameMap().IsValidStep(new Vector2D(roller.GetX, roller.GetY), new Vector2D(nextSquare.X, nextSquare.Y), true, false, true) && _room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && _room.GetGameMap().GetFloorStatus(nextSquare) != 0)
+                    if (rollerUser != null && !rollerUser.IsWalking && nextRollerClear && _room.GetGameMap().IsValidStep(rollerUser, new Vector2D(roller.GetX, roller.GetY), new Vector2D(nextSquare.X, nextSquare.Y), true, false, true) && _room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && _room.GetGameMap().GetFloorStatus(nextSquare) != 0)
                     {
                         if (!_rollerUsersMoved.Contains(rollerUser.HabboId))
                         {

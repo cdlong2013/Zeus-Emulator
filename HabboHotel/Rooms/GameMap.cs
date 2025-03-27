@@ -909,15 +909,14 @@ namespace Plus.HabboHotel.Rooms
             return item.Coordinate;
         }
 
-        public bool IsValidStep2(RoomUser user, Vector2D from, Vector2D to, bool endOfPath, bool @override)
+        public bool IsValidStep2(RoomUser User, Vector2D From, Vector2D To, bool EndOfPath, bool Override)
         {
-            if (user == null)
+            if (User == null)
+                return false;
+            if (!ValidTile(To.X, To.Y))
                 return false;
 
-            if (!ValidTile(to.X, to.Y))
-                return false;
-
-            if (@override)
+            if (Override)
                 return true;
 
             /*
@@ -926,88 +925,108 @@ namespace Plus.HabboHotel.Rooms
              * 2 = last step
              * 3 = door
              * */
-
-            List<Item> items = _room.GetGameMap().GetAllRoomItemForSquare(to.X, to.Y);
-            if (items.Count > 0)
+            List<Item> Items = _room.GetGameMap().GetAllRoomItemForSquare(To.X, To.Y);
+            if (Items.Count > 0)
             {
-                bool hasGroupGate = items.Any(x => x.GetBaseItem().InteractionType == InteractionType.GuildGate);
-                if (hasGroupGate)
+                bool HasGroupGate = Items.ToList().Where(x => x.GetBaseItem().InteractionType == InteractionType.GuildGate).ToList().Count() > 0;
+                bool HasCineTile = Items.ToList().Where(x => x.BaseItem == 89929).ToList().Count() > 0;
+                // bool HasArrow = Items.ToList().Where(x => x.BaseItem == 9999).ToList().Count() > 0;
+                // if (HasArrow)
+                // return true;
+                if (HasCineTile)
                 {
-                    Item I = items.FirstOrDefault(x => x.GetBaseItem().InteractionType == InteractionType.GuildGate);
+                    if ((!User.IsBot && (User.GetClient().GetRolePlay().JobManager.Working || User.GetClient().GetHabbo().Rank > 4))
+                        || User.IsBot)
+                        return true;
+                    else
+                    {
+                        if (!User.IsBot && !User.IsPet)
+                           // User.GetClient().SendWhisper("You're not authorized to enter this area!");
+                        if (User.Path.Count > 0)
+                            User.Path.Clear();
+                        User.PathRecalcNeeded = false;
+                        return false;
+                    }
+                }
+                if (HasGroupGate)
+                {
+                    Item I = Items.FirstOrDefault(x => x.GetBaseItem().InteractionType == InteractionType.GuildGate);
                     if (I != null)
                     {
-                        if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(I.GroupId, out Group group))
+                        Group Group = null;
+                        if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(I.GroupId, out Group))
                             return false;
 
-                        if (user.GetClient() == null || user.GetClient().GetHabbo() == null)
+                        if (User.GetClient() == null || User.GetClient().GetHabbo() == null)
                             return false;
 
-                        if (group.IsMember(user.GetClient().GetHabbo().Id))
+                        if (Group.IsMember(User.GetClient().GetHabbo().Id))
                         {
-                            I.InteractingUser = user.GetClient().GetHabbo().Id;
-                            I.ExtraData = "1";
+                            I.InteractingUser = User.GetClient().GetHabbo().Id;
+                            I.ExtraData = "0";
                             I.UpdateState(false, true);
 
                             I.RequestUpdate(4, true);
 
                             return true;
                         }
-
-                        if (user.Path.Count > 0)
-                            user.Path.Clear();
-                        user.PathRecalcNeeded = false;
-                        return false;
+                        else
+                        {
+                            if (User.Path.Count > 0)
+                                User.Path.Clear();
+                            User.PathRecalcNeeded = false;
+                            return false;
+                        }
                     }
                 }
             }
 
-            bool chair = false;
-            double highestZ = -1;
-            foreach (Item item in items.ToList())
+            bool Chair = false;
+            double HighestZ = -1;
+            foreach (Item Item in Items.ToList())
             {
-                if (item == null)
+                if (Item == null)
                     continue;
 
-                if (item.GetZ < highestZ)
+                if (Item.GetZ < HighestZ)
                 {
-                    chair = false;
+                    Chair = false;
                     continue;
                 }
 
-                highestZ = item.GetZ;
-                if (item.GetBaseItem().IsSeat)
-                    chair = true;
+                HighestZ = Item.GetZ;
+                if (Item.GetBaseItem().IsSeat)
+                    Chair = true;
             }
 
-            if (GameMap[to.X, to.Y] == 3 && !endOfPath && !chair || GameMap[to.X, to.Y] == 0 || GameMap[to.X, to.Y] == 2 && !endOfPath)
+            if ((GameMap[To.X, To.Y] == 3 && !EndOfPath && !Chair) || (GameMap[To.X, To.Y] == 0) || (GameMap[To.X, To.Y] == 2 && !EndOfPath))
             {
-                if (user.Path.Count > 0)
-                    user.Path.Clear();
-                user.PathRecalcNeeded = true;
+                if (User.Path.Count > 0)
+                    User.Path.Clear();
+                User.PathRecalcNeeded = true;
             }
 
-            double heightDiff = SqAbsoluteHeight(to.X, to.Y) - SqAbsoluteHeight(from.X, from.Y);
-            if (heightDiff > 1.5 && !user.RidingHorse)
+            double HeightDiff = SqAbsoluteHeight(To.X, To.Y) - SqAbsoluteHeight(From.X, From.Y);
+            if (HeightDiff > 1.5 && !User.RidingHorse)
                 return false;
 
             //Check this last, because ya.
-            RoomUser userX = _room.GetRoomUserManager().GetUserForSquare(to.X, to.Y);
-            if (userX != null)
+            RoomUser Userx = _room.GetRoomUserManager().GetUserForSquare(To.X, To.Y);
+            if (Userx != null)
             {
-                if (!userX.IsWalking && endOfPath)
+                if (!Userx.IsWalking && EndOfPath)
                     return false;
             }
-
             return true;
         }
 
-        public bool IsValidStep(Vector2D from, Vector2D to, bool endOfPath, bool overriding, bool roller = false)
+        public bool IsValidStep(RoomUser User, Vector2D From, Vector2D To, bool EndOfPath, bool Override, bool Roller = false)
         {
-            if (!ValidTile(to.X, to.Y))
+            if (!ValidTile(To.X, To.Y))
                 return false;
 
-            if (overriding)
-                return true;
+            // if (Override)
+            //  return true;
 
             /*
              * 0 = blocked
@@ -1016,24 +1035,32 @@ namespace Plus.HabboHotel.Rooms
              * 3 = door
              * */
 
-            if (_room.RoomBlockingEnabled == 0 && SquareHasUsers(to.X, to.Y))
+            if (_room.RoomBlockingEnabled == 0 && SquareHasUsers(To.X, To.Y))
                 return false;
 
-            List<Item> items = _room.GetGameMap().GetAllRoomItemForSquare(to.X, to.Y);
-            if (items.Count > 0)
+            List<Item> Items = _room.GetGameMap().GetAllRoomItemForSquare(To.X, To.Y);
+            if (Items.Count > 0)
             {
-                bool hasGroupGate = items.Any(x => x != null && x.GetBaseItem().InteractionType == InteractionType.GuildGate);
-                if (hasGroupGate)
+                bool HasPrisonGate = Items.ToList().Where(x => x.BaseItem == 39912).ToList().Count() > 0;
+                bool HasArrow = Items.ToList().Where(x => x.BaseItem == 9999).ToList().Count() > 0;
+                bool HasArrow2 = Items.ToList().Where(x => x.BaseItem == 7908).ToList().Count() > 0;
+                bool HasGroupGate = Items.ToList().Where(x => x != null && x.GetBaseItem().InteractionType == InteractionType.GuildGate).Count() > 0;
+                if (HasGroupGate || HasArrow || HasArrow2)
                     return true;
+                if (HasPrisonGate)
+                {
+                    if ((User.IsBot) || (!User.IsBot && (User.GetClient().GetRolePlay().JobManager.Working || User.GetClient().GetHabbo().Rank > 4 || User.GetClient().GetRolePlay().ExCon)))
+                        return true;
+                }
             }
 
-            if (GameMap[to.X, to.Y] == 3 && !endOfPath || GameMap[to.X, to.Y] == 0 || GameMap[to.X, to.Y] == 2 && !endOfPath)
+            if ((GameMap[To.X, To.Y] == 3 && !EndOfPath) || GameMap[To.X, To.Y] == 0 || (GameMap[To.X, To.Y] == 2 && !EndOfPath))
                 return false;
 
-            if (!roller)
+            if (!Roller)
             {
-                double heightDiff = SqAbsoluteHeight(to.X, to.Y) - SqAbsoluteHeight(from.X, from.Y);
-                if (heightDiff > 1.5)
+                double HeightDiff = SqAbsoluteHeight(To.X, To.Y) - SqAbsoluteHeight(From.X, From.Y);
+                if (HeightDiff > 1.5)
                     return false;
             }
 

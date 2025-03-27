@@ -74,7 +74,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     tmp = current.Position + (diag ? DiagMovePoints[i] : NoDiagMovePoints[i]);
                     bool isFinalMove = (tmp.X == end.X && tmp.Y == end.Y);
 
-                    if (map.IsValidStep(new Vector2D(current.Position.X, current.Position.Y), tmp, isFinalMove, user.AllowOverride))
+                    if (map.IsValidStep(user, new Vector2D(current.Position.X, current.Position.Y), tmp, isFinalMove, user.AllowOverride))
                     {
                         if (pfMap[tmp.X, tmp.Y] == null)
                         {

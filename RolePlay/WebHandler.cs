@@ -26,6 +26,7 @@ namespace Plus.RolePlay.WebHandle
 
         public void Handle(string Event, string Data, string ExtraData)
         {
+            Console.WriteLine("Handle event is pinging!");
             if (RP.AutoLogout > 0)
                 return;
             if (Event == "select_stun")

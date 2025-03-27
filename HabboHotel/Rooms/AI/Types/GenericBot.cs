@@ -110,6 +110,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
             GetRoomUser().CarryItem(0);
             if (GetBotData().Job == 1)
                 this.KickTimer = 50;
+            Console.WriteLine("Kicktimer engaged!");
             if (GetBotData().Job == 4 && GetRoomUser().RoomId != SpawnRoom)
                 this.KickTimer = 35;
             if (GetBotData().Job == 15)
@@ -418,7 +419,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                                 GetRoomUser().SetRot(Rotation.Calculate(GetRoomUser().X, GetRoomUser().Y, User.X, User.Y), false);
                                 if (Timer > 0 && Distance < 2)
                                     this.Timer--;
-                                if (Distance < 2 && User.Stunned == 0 && !This.Cuffed)
+                                if (Distance <= 2 && User.Stunned == 0 && !This.Cuffed)
                                 {
                                     Say("fires their stun-gun at " + User.GetUsername() + "");
                                     User.Stunned = 7;
@@ -1386,7 +1387,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                         {
                             foreach (Item item in GetRoom().GetRoomItemHandler().GetFloor.ToList())
                             {
-                                if (item.BaseItem == 9999)
+                                if (item.BaseItem == 9999 || item.BaseItem == 7887)
                                 {
                                     this.followX = item.GetX;
                                     this.followY = item.GetY;
@@ -1442,8 +1443,8 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                                                 Reset();
                                                 return;
                                             }
-                                            if (GetBotData().Job != 2 && This.Room.Id != 4)
-                                                This.RoomForward(5);
+                                            if (GetBotData().Job != 2 && This.Room.Id != 10)
+                                                This.RoomForward(20);
                                             else if (GetBotData().Job == 2 && This.Room.Id != 2)
                                             {
                                                 user.GetClient().GetHabbo().GetClientManager().GlobalWeb("{\"name\":\"sidealert\", \"evnt\":\"discharge\","

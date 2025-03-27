@@ -1,4 +1,5 @@
-﻿using Plus.HabboHotel.GameClients;
+﻿using MySqlX.XDevAPI;
+using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
 namespace Plus.Communication.Packets.Incoming.Rooms.Engine
@@ -18,7 +19,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             RoomUser user = room?.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
             if (user == null || !user.CanWalk)
                 return;
-
+            if (session.GetRolePlay().InteractID > 0)
+                return;
+            if (user.Stunned > 0 || session.GetRolePlay().Cuffed || session.GetRolePlay().Spinning) // User.TeleDelay > 0)
+            {
+                session.GetRolePlay().Responds();
+                return;
+            }
             int moveX = packet.PopInt();
             int moveY = packet.PopInt();
 

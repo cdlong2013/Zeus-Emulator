@@ -1,2 +1,0 @@
-test
-<img src="http://habborp.net/rp/hsbc.png" />

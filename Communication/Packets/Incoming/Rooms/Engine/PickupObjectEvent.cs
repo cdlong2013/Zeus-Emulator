@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using MySqlX.XDevAPI;
+using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
+using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Quests;
@@ -86,7 +88,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                         }
                     }
                 }
-
+                if (item.BaseItem == 8211 || item.BaseItem == 677 || item.BaseItem == 671 || item.BaseItem == 672 || item.BaseItem == 673 || item.BaseItem == 674 || item.BaseItem == 676 || item.BaseItem == 679 || item.BaseItem == 680 || item.BaseItem == 678 || item.BaseItem == 20075 || item.BaseItem == 681)
+                {
+                    session.GetRolePlay().roomUser.Stunned = 0;
+                    session.GetRolePlay().isSleeping = false;
+                    session.GetHabbo().roomUser.IsAsleep = false;
+                    session.GetHabbo().CurrentRoom.SendPacket(new SleepComposer(session.GetHabbo().Id, false));
+                }
                 PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.FurniPick);
             }
         }

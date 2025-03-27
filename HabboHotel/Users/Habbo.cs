@@ -138,7 +138,8 @@ namespace Plus.HabboHotel.Users
         public bool SessionGiftBlocked { get; set; }
         public bool SessionMottoBlocked { get; set; }
         public bool SessionClothingBlocked { get; set; }
-
+        public bool Arrowtele = false;
+        public int Vaulttele;
         public List<int> RatedRooms;
 
         private GameClient _client;

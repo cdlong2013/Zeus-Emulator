@@ -142,123 +142,290 @@ namespace Plus.HabboHotel.Rooms
             return _room.GetGameMap().GetRoomUsers(new Point(x, y)).FirstOrDefault();
         }
 
-        public bool AddAvatarToRoom(GameClient session)
+        public bool AddAvatarToRoom(GameClient Session)
         {
             if (_room == null)
                 return false;
 
-            if (session?.GetHabbo().CurrentRoom == null)
+            if (Session == null)
                 return false;
 
-            RoomUser user = new(session.GetHabbo().Id, _room.RoomId, _primaryPrivateUserId++, _room);
-
-            if (user == null || user.GetClient() == null)
+            if (Session.GetHabbo().CurrentRoom == null)
                 return false;
 
-            user.UserId = session.GetHabbo().Id;
+            #region Old Stuff
+            RoomUser User = new RoomUser(Session.GetHabbo().Id, _room.RoomId, _primaryPrivateUserId++, _room);
 
-            session.GetHabbo().TentId = 0;
-
-            int personalId = _secondaryPrivateUserId++;
-            user.InternalRoomId = personalId;
-
-            session.GetHabbo().CurrentRoomId = _room.RoomId;
-            if (!_users.TryAdd(personalId, user))
+            if (User == null || User.GetClient() == null)
                 return false;
 
-            DynamicRoomModel model = _room.GetGameMap().Model;
-            if (model == null)
+            User.UserId = Session.GetHabbo().Id;
+
+            Session.GetHabbo().TentId = 0;
+
+            int PersonalID = _secondaryPrivateUserId++;
+            User.InternalRoomId = PersonalID;
+
+
+            Session.GetHabbo().CurrentRoomId = _room.RoomId;
+            if (!this._users.TryAdd(PersonalID, User))
+                return false;
+            #endregion
+
+            DynamicRoomModel Model = _room.GetGameMap().Model;
+            if (Model == null)
                 return false;
 
-            if (!_room.PetMorphsAllowed && session.GetHabbo().PetId != 0)
-                session.GetHabbo().PetId = 0;
-
-            if (!session.GetHabbo().IsTeleporting && !session.GetHabbo().IsHopping)
+            if (!_room.PetMorphsAllowed && Session.GetHabbo().PetId != 0)
+                Session.GetHabbo().PetId = 0;
+            if (_room.Id == 170 && Session.GetRolePlay().GameType == "Mafia")
             {
-                if (!model.DoorIsValid())
+                var This = Session.GetRolePlay();
+                User.ApplyEffect(4);
+                This.TempEffect = 5;
+                if (This.Team == "Blue")
                 {
-                    Point square = _room.GetGameMap().GetRandomWalkableSquare();
-                    model.DoorX = square.X;
-                    model.DoorY = square.Y;
-                    model.DoorZ = _room.GetGameMap().GetHeightForSquareFromData(square);
+                    User.SetPos(7, 4, User.Z);
+                    This.Rotate = 6;
                 }
-
-                user.SetPos(model.DoorX, model.DoorY, model.DoorZ);
-                user.SetRot(model.DoorOrientation, false);
-            }
-            else if (!user.IsBot && (user.GetClient().GetHabbo().IsTeleporting || user.GetClient().GetHabbo().IsHopping))
-            {
-                Item item = null;
-                if (session.GetHabbo().IsTeleporting)
-                    item = _room.GetRoomItemHandler().GetItem(session.GetHabbo().TeleportId);
-                else if (session.GetHabbo().IsHopping)
-                    item = _room.GetRoomItemHandler().GetItem(session.GetHabbo().HopperId);
-
-                if (item != null)
+                else if (This.Team == "Green")
                 {
-                    if (session.GetHabbo().IsTeleporting)
+                    User.SetPos(8, 10, User.Z);
+                    This.Rotate = 2;
+                }
+                This.habbo.GetClientManager().GameInSession = true;
+            }
+            else if (!User.IsBot && (Session.GetHabbo().IsTeleporting || Session.GetHabbo().IsHopping || Session.GetHabbo().Arrowtele || Session.GetHabbo().Vaulttele > 0))
+            {
+                Item Item = null;
+                if (Session.GetHabbo().IsTeleporting || User.GetClient().GetHabbo().Arrowtele)
+                    Item = _room.GetRoomItemHandler().GetItem(Session.GetHabbo().TeleportId);
+                else if (Session.GetHabbo().IsHopping)
+                    Item = _room.GetRoomItemHandler().GetItem(Session.GetHabbo().HopperId);
+
+                if (Item != null || Session.GetHabbo().Vaulttele > 0)
+                {
+                    if (Session.GetHabbo().IsTeleporting)
                     {
-                        item.ExtraData = "2";
-                        item.UpdateState(false, true);
-                        user.SetPos(item.GetX, item.GetY, item.GetZ);
-                        user.SetRot(item.Rotation, false);
-                        item.InteractingUser2 = session.GetHabbo().Id;
-                        item.ExtraData = "0";
-                        item.UpdateState(false, true);
+                        Item.ExtraData = "2";
+                        Item.UpdateState(false, true);
+                        User.SetPos(Item.GetX, Item.GetY, Item.GetZ);
+                        User.SetRot(Item.Rotation, false);
+                        Item.InteractingUser2 = Session.GetHabbo().Id;
+                        Item.ExtraData = "1";
+                        Item.UpdateState(false, true);
                     }
-                    else if (session.GetHabbo().IsHopping)
+                    else if (Session.GetHabbo().IsHopping)
                     {
-                        item.ExtraData = "1";
-                        item.UpdateState(false, true);
-                        user.SetPos(item.GetX, item.GetY, item.GetZ);
-                        user.SetRot(item.Rotation, false);
-                        user.AllowOverride = false;
-                        item.InteractingUser2 = session.GetHabbo().Id;
-                        item.ExtraData = "2";
-                        item.UpdateState(false, true);
+                        Item.ExtraData = "1";
+                        Item.UpdateState(false, true);
+                        User.SetPos(Item.GetX, Item.GetY, Item.GetZ);
+                        User.SetRot(Item.Rotation, false);
+                        User.AllowOverride = false;
+                        Item.InteractingUser2 = Session.GetHabbo().Id;
+                        Item.ExtraData = "2";
+                        Item.UpdateState(false, true);
+                    }
+                    else if (Session.GetHabbo().Arrowtele)
+                    {
+                        User.SetPos(Item.GetX, Item.GetY, Item.GetZ);
+                        User.SetRot(Item.Rotation, false);
+                        Session.GetHabbo().Arrowtele = false;
+                        Session.GetHabbo().TeleportId = 0;
+                    }
+                    else if (Session.GetHabbo().Vaulttele > 0)
+                    {
+                        if (Session.GetHabbo().Vaulttele == 5)
+                            User.SetPos(10, 16, User.GetRoom().GetGameMap().Model.DoorZ);
+                        else if (Session.GetHabbo().Vaulttele == 6)
+                            User.SetPos(11, 16, User.GetRoom().GetGameMap().Model.DoorZ);
+                        else if (Session.GetHabbo().Vaulttele == 7)
+                            User.SetPos(12, 16, User.GetRoom().GetGameMap().Model.DoorZ);
+                        else if (Session.GetHabbo().Vaulttele == 8)
+                            User.SetPos(13, 16, User.GetRoom().GetGameMap().Model.DoorZ);
+                        else if (Session.GetHabbo().Vaulttele == 1)
+                            User.SetPos(6, 13, User.GetRoom().GetGameMap().Model.DoorZ);
+                        else if (Session.GetHabbo().Vaulttele == 2)
+                            User.SetPos(7, 13, User.GetRoom().GetGameMap().Model.DoorZ);
+                        else if (Session.GetHabbo().Vaulttele == 3)
+                            User.SetPos(8, 13, User.GetRoom().GetGameMap().Model.DoorZ);
+                        else if (Session.GetHabbo().Vaulttele == 4)
+                            User.SetPos(9, 13, User.GetRoom().GetGameMap().Model.DoorZ);
+                        if (Session.GetHabbo().Vaulttele > 0 && Session.GetHabbo().Vaulttele < 5)
+                            User.SetRot(0, false);
+                        else User.SetRot(4, false);
+                        Session.GetHabbo().Vaulttele = 0;
+                        Session.GetHabbo().TeleportId = 0;
                     }
                 }
                 else
                 {
-                    user.SetPos(model.DoorX, model.DoorY, model.DoorZ - 1);
-                    user.SetRot(model.DoorOrientation, false);
+                    User.SetPos(Model.DoorX, Model.DoorY, Model.DoorZ - 1);
+                    User.SetRot(Model.DoorOrientation, false);
+                }
+            }
+            else
+            {
+                #region escort postion and rotation
+                if (!User.IsBot && !User.IsPet && User.GetClient().GetRolePlay().EscortID > 0)
+                {
+                    #region user
+                    var user = GetRoomUserByHabbo(User.GetClient().GetRolePlay().EscortID);
+                    int x = 0;
+                    int y = 0;
+                    if (user.GetClient().GetRolePlay().JobManager.Job == 7 && user.GetClient().GetRolePlay().JobManager.Working)
+                    {
+                        x = user.X;
+                        y = user.Y;
+                    }
+                    else
+                    {
+                        if (user.RotBody == 4)
+                        {
+                            x = user.X;
+                            y = user.Y + 1;
+                        }
+                        if (user.RotBody == 6)
+                        {
+                            x = user.X - 1;
+                            y = user.Y;
+                        }
+                        if (user.RotBody == 0)
+                        {
+                            x = user.X;
+                            y = user.Y - 1;
+                        }
+                        if (user.RotBody == 2)
+                        {
+                            x = user.X + 1;
+                            y = user.Y;
+                        }
+                        if (user.RotBody == 5)
+                        {
+                            x = user.X - 1;
+                            y = user.Y + 1;
+                        }
+                        if (user.RotBody == 1)
+                        {
+                            x = user.X + 1;
+                            y = user.Y - 1;
+                        }
+                        if (user.RotBody == 3)
+                        {
+                            x = user.X + 1;
+                            y = user.Y + 1;
+                        }
+                        if (user.RotBody == 7)
+                        {
+                            x = user.X - 1;
+                            y = user.Y - 1;
+                        }
+                    }
+                    if (!_room.GetGameMap().Path(x, y, User) && !user.GetClient().GetHabbo().InRoom)
+                    {
+                        x = Model.DoorX;
+                        y = Model.DoorY;
+                    }
+                    User.SetPos(x, y, Model.DoorZ);
+                    User.SetRot(user.RotBody, false);
+                    #endregion
+                }
+                else if (!User.IsBot && !User.IsPet && User.GetClient().GetRolePlay().BotEscort > 0)
+                {
+                    #region bot
+                    foreach (RoomUser user in _room.GetRoomUserManager()._bots.Values.ToList())
+                        if (user.BotData.Id == User.GetClient().GetRolePlay().BotEscort)
+                        {
+                            int x = 0;
+                            int y = 0;
+                            if (user.RotBody == 4)
+                            {
+                                x = user.X;
+                                y = user.Y + 1;
+                            }
+                            if (user.RotBody == 6)
+                            {
+                                x = user.X - 1;
+                                y = user.Y;
+                            }
+                            if (user.RotBody == 0)
+                            {
+                                x = user.X;
+                                y = user.Y - 1;
+                            }
+                            if (user.RotBody == 2)
+                            {
+                                x = user.X + 1;
+                                y = user.Y;
+                            }
+                            if (user.RotBody == 5)
+                            {
+                                x = user.X - 1;
+                                y = user.Y + 1;
+                            }
+                            if (user.RotBody == 1)
+                            {
+                                x = user.X + 1;
+                                y = user.Y - 1;
+                            }
+                            if (user.RotBody == 3)
+                            {
+                                x = user.X + 1;
+                                y = user.Y + 1;
+                            }
+                            if (user.RotBody == 7)
+                            {
+                                x = user.X - 1;
+                                y = user.Y - 1;
+                            }
+                            User.SetPos(x, y, Model.DoorZ);
+                            User.SetRot(user.RotBody, false);
+                        }
+                    #endregion
+                }
+                #endregion
+
+                else
+                {
+                    User.SetPos(Model.DoorX, Model.DoorY, Model.DoorZ);
+                    User.SetRot(Model.DoorOrientation, false);
                 }
             }
 
-            _room.SendPacket(new UsersComposer(user));
+            _room.SendPacket(new UsersComposer(User));
 
-            if (_room.CheckRights(session, true))
+            //Below = done
+            if (_room.CheckRights(Session, true))
             {
-                user.SetStatus("flatctrl", "useradmin");
-                session.SendPacket(new YouAreOwnerComposer());
-                session.SendPacket(new YouAreControllerComposer(4));
+                User.SetStatus("flatctrl", "useradmin");
+                Session.SendPacket(new YouAreOwnerComposer());
+                Session.SendPacket(new YouAreControllerComposer(4));
             }
-            else if (_room.CheckRights(session, false) && _room.Group == null)
+            else if (_room.CheckRights(Session, false) && _room.Group == null)
             {
-                user.SetStatus("flatctrl", "1");
-                session.SendPacket(new YouAreControllerComposer(1));
+                User.SetStatus("flatctrl", "1");
+                Session.SendPacket(new YouAreControllerComposer(1));
             }
-            else if (_room.Group != null && _room.CheckRights(session, false, true))
+            else if (_room.Group != null && _room.CheckRights(Session, false, true))
             {
-                user.SetStatus("flatctrl", "3");
-                session.SendPacket(new YouAreControllerComposer(3));
+                User.SetStatus("flatctrl", "3");
+                Session.SendPacket(new YouAreControllerComposer(3));
             }
             else
-                session.SendPacket(new YouAreNotControllerComposer());
+                Session.SendPacket(new YouAreNotControllerComposer());
 
-            user.UpdateNeeded = true;
+            User.UpdateNeeded = true;
 
-            if (session.GetHabbo().GetPermissions().HasRight("mod_tool") && !session.GetHabbo().DisableForcedEffects)
-                session.GetHabbo().Effects().ApplyEffect(102);
+            if (Session.GetHabbo().GetPermissions().HasRight("mod_tool") && !Session.GetHabbo().DisableForcedEffects)
+                Session.GetHabbo().Effects().ApplyEffect(102);
 
-            foreach (RoomUser bot in _bots.Values.ToList())
+            foreach (RoomUser Bot in this._bots.Values.ToList())
             {
-                if (bot == null || bot.BotAI == null)
+                if (Bot == null || Bot.BotAI == null)
                     continue;
 
-                bot.BotAI.OnUserEnterRoom(user);
+                Bot.BotAI.OnUserEnterRoom(User);
             }
-
             return true;
         }
 
@@ -1478,7 +1645,10 @@ namespace Plus.HabboHotel.Rooms
                                 {
                                     if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
                                         continue;
-
+                                    Room Room;
+                                    var This = user.GetClient().GetRolePlay();
+                                    if (This.Dead || user.Stunned > 0 || user.IsAsleep || This.EscortID > 0 || This.BotEscort > 0 || This.Cuffed)
+                                        return;
                                     if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(user.GetClient().GetHabbo().CurrentRoomId, out Room room))
                                         return;
 
@@ -1508,7 +1678,29 @@ namespace Plus.HabboHotel.Rooms
                                                 user.GetClient().GetHabbo().IsTeleporting = true;
                                                 user.GetClient().GetHabbo().TeleportingRoomId = teleRoomId;
                                                 user.GetClient().GetHabbo().TeleportId = linkedTele;
+                                                if (item.BaseItem == 9999)
+                                                {
+                                                    if (item.Rotation == 4)
+                                                        This.Rotate = 4;
+                                                    else if (item.Rotation == 0)
+                                                        This.Rotate = 10;
+                                                    else if (item.Rotation == 6)
+                                                        This.Rotate = 6;
+                                                    else if (item.Rotation == 2)
+                                                        This.Rotate = 2;
+                                                }
+                                                else
+                                                {
+                                                    if (item.Rotation == 4)
+                                                        This.Rotate = 10;
+                                                    else if (item.Rotation == 0)
+                                                        This.Rotate = 4;
+                                                    else if (item.Rotation == 6)
+                                                        This.Rotate = 2;
+                                                    else if (item.Rotation == 2)
+                                                        This.Rotate = 6;
 
+                                                }
                                                 user.GetClient().GetHabbo().PrepareRoom(teleRoomId, "");
                                             }
                                         }

@@ -122,8 +122,7 @@ namespace Plus.HabboHotel.Rooms.Games
         }
         public WebManager GetSocketManager()
         {
-            return this._webmanager
-                ;
+            return this._webmanager ;
         }
         private static bool IsFootballGoal(InteractionType type)
         {

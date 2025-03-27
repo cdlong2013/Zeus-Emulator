@@ -256,6 +256,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 #region :stun <user>
                 case "stun":
                     {
+                        
                         var This = session.GetRolePlay();
                         This.Stun(Convert.ToString(split[1]));
                         return true;
@@ -594,7 +595,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                             {
                                 if (!This.habbo.GetClientManager().AddReason(charge, WantedList))
                                 {
-                                    session.SendWhisper("You can only add a maximum of 3 charges!");
+                                    session.SendWhisper("You need to specify a valid reason!");
                                     return true;
                                 }
                             }
@@ -758,10 +759,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                         Target.JobManager.Job = job;
                         Target.JobManager.JobRank = rank;
                         if (Target.JobManager.SetJob(true, true) == "null")
-                            session.SendWhisper("Este trabalho não existe!");
+                            session.SendWhisper("This job does not exist!");
                         else
                         {
-                            This.Say("hires " + Target.habbo.Username + " as" + Target.JobManager.JobMotto + "", false);
+                            This.Say("hires " + Target.habbo.Username + " as " + Target.JobManager.JobMotto + "", true, 4);
                             This.dubCooldown = 5;
                             This.habbo.GetClientManager().GlobalWeb("{\"name\":\"sidealert\", \"evnt\":\"hired\","
                                    + "\"name1\":\"" + This.habbo.Username + "\", \"name2\":\"" + User.GetUsername() + "\","
@@ -811,6 +812,32 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                         return true;
                     }
 
+                #endregion
+
+                #region :quitjob
+                case "quitjob":
+                    {
+                        var This = session.GetRolePlay();
+                        if (This.JobManager.Job == 0)
+                        {
+                            session.SendWhisper("You do not have a job!");
+                            return true;
+                        }
+                        if (split.Length == 1)
+                            session.SendWhisper("You are about to quit your job, type :quitjob yes to resign.");
+                        else
+                        {
+                            string yes = Convert.ToString(split[1]);
+                            if (yes == "yes")
+                            {
+                                This.Stopwork(true);
+                                This.Say("quits their job", true, 4);
+
+                            }
+                            else session.SendWhisper("You are about to quit your job, type :quitjob yes to resign.");
+                        }
+                        return true;
+                    }
                 #endregion
 
                 #region :heal <user>
@@ -900,6 +927,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                     {
                         var This = session.GetRolePlay();
                         var User = session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(Convert.ToString(split[1]));
+                        
                         if (This.lockTarget > 0)
                         {
                             var Target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(This.lockTarget);
@@ -1340,7 +1368,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                                 if (This.roomUser.CurrentEffect == 102)
                                     This.roomUser.ApplyEffect(0);
                                 This.GetClient().SendWhisper("You are now off duty!");
-                                //This.SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"false\"}");
+                                This.SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"false\"}");
                                 if (This.Inventory.Equip2.Contains("kevlar"))
                                     This.WebHandler.Handle("equip", "", "e2");
                                 if (This.Inventory.Equip1 != "null")
@@ -1362,7 +1390,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                                         if (This.Inventory.Equip1 != "null")
                                             This.WebHandler.Handle("equip", "", "e1");
                                     }
-                                    //This.SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"true\"}");
+                                    This.SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"true\"}");
                                     if (This.Trade.Trading)
                                         This.client.SendWhisper("You need to stop trading to recieve your stun-gun");
                                     else This.Inventory.Additem(This.stungun);
@@ -1476,10 +1504,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                     {
                         var This = session.GetRolePlay();
 
-                        This.SendWeb("{\"name\":\"911\"}");
-                
-                        This.Say("This is a voice bubble!", true, Convert.ToInt32(split[1]));
-                        
+                        // This.SendWeb("{\"name\":\"911\"}");
+                        This.SendWeb("{\"name\":\"selectstun\"}");
+                        session.SendWhisper("trying to load itman..");
+                        //This.Say("This is a voice bubble!", true, Convert.ToInt32(split[1]));
+
                         return true;
                     }
 

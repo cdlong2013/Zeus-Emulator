@@ -3,9 +3,7 @@ using System;
 using System.Data;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Drawing;
-using System.Threading.Tasks;
 using Plus.HabboHotel.Rooms;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
@@ -35,6 +33,7 @@ using Plus.RolePlay.Job;
 using MySqlX.XDevAPI;
 using static System.Collections.Specialized.BitVector32;
 using System.Reflection.Metadata.Ecma335;
+using WebSocket;
 
 namespace Plus.RolePlay
 {
@@ -45,6 +44,8 @@ namespace Plus.RolePlay
         public RolePlayTimer RPTimer;
 
         public PoliceCall PoliceCalls;
+
+        public WebManager _ws;
 
         public Equipment Inventory;
 
@@ -401,7 +402,10 @@ namespace Plus.RolePlay
                 return this.GetClient().GetHabbo();
             }
         }
-
+        public WebManager WebSocket()
+        {
+            return _ws;
+        }
         public RoomUser roomUser
         {
             get
@@ -444,6 +448,7 @@ namespace Plus.RolePlay
 
         public void SendWeb(string data)
         {
+           
             if (AutoLogout > 0)
                 return;
             if (ws == null)
@@ -453,6 +458,7 @@ namespace Plus.RolePlay
             if (!data.Contains("{"))
                 return;
             ws.Send(data);
+            Console.WriteLine("SendWeb is initialized!");
         }
 
         public RPData(DataRow stat, GameClient _client)
@@ -734,7 +740,7 @@ namespace Plus.RolePlay
                                 at = "at";
                             if (Swing == "slaps")
                                 Say("" + Swing + " " + Target.habbo.Username + ", causing" + Damage + " damage", true);
-                            else Say("" + Swing + " " + DamageType + " " + at + " " + Target.habbo.Username + ", causando " + Damage + " dano", true);
+                            else Say("" + Swing + " " + DamageType + " " + at + " " + Target.habbo.Username + ", causing " + Damage + " damage", true);
                             if (lockTarget != Target.habbo.Id)
                             {
                                 lockTarget = Target.habbo.Id;
@@ -979,7 +985,7 @@ namespace Plus.RolePlay
                                 at = "at";
                                 Inventory.ItemHealth("true", wepdmg);
                             }
-                            Say("" + Swing + " " + DamageType + " " + at + " " + Bot.BotData.Name + ", causando " + Damage + " dano", true);
+                            Say("" + Swing + " " + DamageType + " " + at + " " + Bot.BotData.Name + ", causing " + Damage + " damage", true);
                             if (lockBot != Bot.BotData.Id)
                             {
                                 lockBot = Bot.BotData.Id;
@@ -1300,13 +1306,13 @@ namespace Plus.RolePlay
         public void Responds()
         {
             if (Dead || Health < 1)
-                GetClient().SendWhisper("That action cannot be performed while you are dead.");
+                GetClient().SendWhisper("That action cannot be performed while you are dead!");
             else if (Jailed > 0 || JailedSec > 0)
-                GetClient().SendWhisper("That action cannot be performed while in jail.");
+                GetClient().SendWhisper("That action cannot be performed while in jail!");
             else if (roomUser.Stunned > 0)
-                GetClient().SendWhisper("That action cannot be performed while stunned.");
+                GetClient().SendWhisper("That action cannot be performed while stunned!");
             else if (Cuffed)
-                GetClient().SendWhisper("Esta ação não pode ser realizada enquanto estiver algemado!");
+                GetClient().SendWhisper("That action cannot be performed while cuffed!");
             else if (Cooldown > 0)
                 GetClient().SendWhisper("This ability is on cooldown [" + Cooldown + "/3]");
             else if (Cooldown2 > 0)
@@ -1320,17 +1326,17 @@ namespace Plus.RolePlay
             else if (atmCD > 0)
                 GetClient().SendWhisper("This ability is on cooldown (" + atmCD + ")");
             else if (MaxEnergy < 1)
-                GetClient().SendWhisper("You have no energy left to perform this action.");
+                GetClient().SendWhisper("You have no energy left to perform this action!");
             else if (Energy < 1)
-                GetClient().SendWhisper("That action cannot be performed with low energy.");
+                GetClient().SendWhisper("That action cannot be performed with low energy!");
             else if (GP > 0)
-                GetClient().SendWhisper("That action cannot be peformed while in passive mode.");
+                GetClient().SendWhisper("That action cannot be peformed while in passive mode!");
             else if (Escorting > 0)
-                GetClient().SendWhisper("That action cannot be performed while escorting.");
+                GetClient().SendWhisper("That action cannot be performed while escorting!");
             else if (JobManager.Working)
-                GetClient().SendWhisper("That action cannot be performed while working.");
+                GetClient().SendWhisper("That action cannot be performed while working!");
             else
-                GetClient().SendWhisper("That action cannot be performed at this time.");
+                GetClient().SendWhisper("That action cannot be performed at this time!");
         }
         public void CallPolice(string message)
         {
@@ -1437,14 +1443,16 @@ namespace Plus.RolePlay
             }
             if (alert)
             {
-                //if (Jailed == 1)
-                   // GetClient().SendNotifi("Você foi preso por " + Jailed + " minutos!");
-               // else GetClient().SendNotifi("Você foi preso por " + Jailed + " minutos!");
+                if (Jailed == 1)
+                    GetClient().SendWhisper("You were arrested for " + Jailed + "minutes!");
+                   //GetClient().SendNotifi("You were arrested for " + Jailed + " minutos!");
+           
+                else GetClient().SendWhisper("You were arrested for " + Jailed + "minutes!");
             }
             var WL = habbo.GetClientManager().GetWL(habbo.Username, 0);
             if (WL != null)
                 habbo.GetClientManager().RemoveWL(WL.ID);
-            GetClient().log("" + habbo.Username + " foi preso por " + Jailed + " minutos");
+            GetClient().log("" + habbo.Username + " was arrested for " + Jailed + " minutes");
             Timer(Jailed, JailedSec, "jail");
         }
         public void XPSet(int Amount)
@@ -1902,12 +1910,12 @@ namespace Plus.RolePlay
                     if (JobManager.Job == 1 && stungun == "null")
                     {
                         SendWeb("{\"name\":\"selectstun\"}");
-                        client.SendWhisper("Você deve selecionar uma arma de choque antes de executar esta ação!");
+                        client.SendWhisper("You must select your stungun before you can begin your duty!");
                         return;
                     }
                     if (Inventory.IsInventoryFull("stun") && JobManager.Job == 1)
                     {
-                        client.SendWhisper("Você precisa limpar um slot para equipar sua arma de choque");
+                        client.SendWhisper("You need to clear a slot in your inventory to equip your stungun!");
                         return;
                     }
                     if (Inventory.Equip1 != "null" || Inventory.Equip2 != "null")
@@ -1958,12 +1966,12 @@ namespace Plus.RolePlay
             }
             if (JobManager.Job == 0)
             {
-                GetClient().SendWhisper("Você não tem um emprego!");
+                GetClient().SendWhisper("You do not have a job!");
                 return;
             }
             if (!JobManager.Working && !fired)
             {
-                GetClient().SendWhisper("Você não está trabalhando!");
+                GetClient().SendWhisper("You are not working!");
                 return;
             }
 
@@ -1988,12 +1996,12 @@ namespace Plus.RolePlay
                 if (JobManager.Job == 7)
                     habbo.GetClientManager().Paramedics--;
                 #endregion
-               // SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"false\"}");
-                //if (Inventory.Equip2.Contains("kevlar"))
-                //    WebHandler.Handle("equip", "", "e2");
-                //if (Inventory.Equip1 != "null")
-                //    WebHandler.Handle("equip", "", "e1");
-                //Inventory.Additem(stungun, true);
+                SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"false\"}");
+                if (Inventory.Equip2.Contains("kevlar"))
+                    WebHandler.Handle("equip", "", "e2");
+                if (Inventory.Equip1 != "null")
+                    WebHandler.Handle("equip", "", "e1");
+                Inventory.Additem(stungun, true);
                 Look(previousLook);
                 Refresh();
             }
@@ -3036,6 +3044,7 @@ namespace Plus.RolePlay
         {
             if (ws == null)
                 client.Disconnect();
+           Console.WriteLine("Websocket is null!");
             int _xpdue = XPdue;
             int _xp = XP;
             if (XPdue > 75)

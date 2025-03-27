@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Plus.Communication.Packets;
 using Plus.Core;
@@ -22,6 +23,7 @@ using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat;
 using Plus.HabboHotel.Subscriptions;
 using Plus.HabboHotel.Talents;
+using WebSocket;
 
 namespace Plus.HabboHotel
 {
@@ -49,6 +51,7 @@ namespace Plus.HabboHotel
         private readonly BadgeManager _badgeManager;
         private readonly PermissionManager _permissionManager;
         private readonly SubscriptionManager _subscriptionManager;
+        private readonly WebManager _webmanager;
 
         private bool _cycleEnded;
         private bool _cycleActive;
@@ -57,6 +60,10 @@ namespace Plus.HabboHotel
 
         public Game()
         {
+
+          
+
+
             _packetManager = new PacketManager();
             _clientManager = new GameClientManager();
 
@@ -117,13 +124,17 @@ namespace Plus.HabboHotel
 
             _subscriptionManager = new SubscriptionManager();
             _subscriptionManager.Init();
+            
+            _webmanager = new WebManager();
+            _webmanager.Init();
+           
         }
 
         public void StartGameLoop()
         {
             _gameCycle = new Task(GameCycle);
             _gameCycle.Start();
-
+           
             _cycleActive = true;
         }
 
@@ -254,6 +265,10 @@ namespace Plus.HabboHotel
         public BadgeManager GetBadgeManager()
         {
             return _badgeManager;
+        }
+        public WebManager GetSocketManager()
+        {
+            return this._webmanager;
         }
     }
 }

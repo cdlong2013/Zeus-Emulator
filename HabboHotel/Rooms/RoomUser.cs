@@ -504,8 +504,9 @@ namespace Plus.HabboHotel.Rooms
                 if (This.item > 0)
                     CarryItem(This.item, This.itemtimer);
                 if (This.Loggedin)
-                    //This.LoadStats();
+                   
                 This.DisplayRoomInfo = true;
+               This.LoadStats();
                 if (This.Dead)
                 {
                     This.BedSetup();

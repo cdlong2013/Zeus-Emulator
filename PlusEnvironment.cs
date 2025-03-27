@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Fleck;
 using log4net;
 using MySql.Data.MySqlClient;
 using Plus.Communication.Encryption;
@@ -23,6 +24,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.UserData;
 using Plus.Network;
+
 using Plus.Utilities;
 
 namespace Plus
@@ -31,8 +33,8 @@ namespace Plus
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PlusEnvironment));
 
-        public const string PrettyVersion = "Plus Emulator";
-        public const string PrettyBuild = "3.4.3.0";
+        public const string PrettyVersion = "Zeus Emulator";
+        public const string PrettyBuild = "1.3.1";
 
         private static Encoding _defaultEncoding;
         public static CultureInfo CultureInfo;
@@ -67,16 +69,12 @@ namespace Plus
             ServerStarted = DateTime.Now;
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine();
-            Console.WriteLine("                     ____  __           ________  _____  __");
-            Console.WriteLine(@"                    / __ \/ /_  _______/ ____/  |/  / / / /");
-            Console.WriteLine("                   / /_/ / / / / / ___/ __/ / /|_/ / / / / ");
-            Console.WriteLine("                  / ____/ / /_/ (__  ) /___/ /  / / /_/ /  ");
-            Console.WriteLine(@"                 /_/   /_/\__,_/____/_____/_/  /_/\____/ ");
-
+            Console.WriteLine("Zeus Emulator");
+            Console.WriteLine("Fork from PlusEmulator 3.4.3");
+            Console.WriteLine("Roleplay Edition");
             Console.ForegroundColor = ConsoleColor.Green;
 
             Console.WriteLine("                                " + PrettyVersion + " <Build " + PrettyBuild + ">");
-            Console.WriteLine("                                http://PlusIndustry.com");
 
             Console.WriteLine("");
             Console.Title = "Loading Plus Emulator";
@@ -89,6 +87,9 @@ namespace Plus
 
             try
             {
+             
+
+
                 _configuration = new ConfigurationData($"Config{Path.DirectorySeparatorChar}config.ini");
 
                 var connectionString = new MySqlConnectionStringBuilder
@@ -184,6 +185,7 @@ namespace Plus
             }
         }
 
+       
         public static bool EnumToBool(string @enum)
         {
             return @enum == "1";
@@ -209,7 +211,7 @@ namespace Plus
         {
             TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0);
             double unixTime = ts.TotalMilliseconds;
-            return (long) unixTime;
+            return (long)unixTime;
         }
 
         public static string FilterFigure(string figure)

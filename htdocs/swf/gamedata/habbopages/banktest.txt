@@ -1,3 +1,0 @@
-Bank
-<span class="padding-top"><br></span><h3>Opening a bank account</h3><span class="padding-bottom"><br></span>
-<span class="padding-top"><br></span><p>Use the navigator to explore the wonderful world of Habbo! Easily search for specific rooms with filters like room name, room owner, group name and tags.</p><span class="padding-bottom"><br></span>

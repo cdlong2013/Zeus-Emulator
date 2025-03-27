@@ -141,8 +141,8 @@ namespace Plus.HabboHotel.GameClients
                 return;
             foreach (GameClient client in this._clients.Values.ToList())
             {
-                // todo if (client != null)
-                    //client.GetRolePlay().SendWeb(data);
+                  if (client != null)
+                    client.GetRolePlay().SendWeb(data);
             }
         }
         public void StaffAlert(MessageComposer message, int exclude = 0)

@@ -1,3 +1,0 @@
-Hospital
-<span class="padding-top"><br></span><h3>Getting medical treatment</h3><span class="padding-bottom"><br></span>
-<span class="padding-top"><br></span><p>To restore your health ask a member of staff for "medical aid"</p><span class="padding-bottom"><br></span>

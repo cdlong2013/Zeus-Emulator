@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using log4net;
+using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Outgoing.Inventory.Pets;
 using Plus.Communication.Packets.Outgoing.Rooms.Notifications;
 using Plus.HabboHotel.GameClients;
@@ -45,7 +46,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets
                 session.SendNotification("This pet is already in the room?");
                 return;
             }
-
+            var This = session.GetRolePlay();
+            if (This.Dead || This.Jailed > 0 || This.JailedSec > 0 || This.EscortID > 0 || This.Escorting > 0
+                || This.BotEscort > 0)
+            {
+                This.Responds();
+                return;
+            }
             int x = packet.PopInt();
             int y = packet.PopInt();
 
