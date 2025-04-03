@@ -34,7 +34,7 @@ namespace Plus
         private static readonly ILog Log = LogManager.GetLogger(typeof(PlusEnvironment));
 
         public const string PrettyVersion = "Zeus Emulator";
-        public const string PrettyBuild = "1.3.1";
+        public const string PrettyBuild = "1.3.2";
 
         private static Encoding _defaultEncoding;
         public static CultureInfo CultureInfo;
@@ -71,6 +71,8 @@ namespace Plus
             Console.WriteLine();
             Console.WriteLine("Zeus Emulator");
             Console.WriteLine("Fork from PlusEmulator 3.4.3");
+            Console.WriteLine("Credits to Sledmore for Plus R2");
+            
             Console.WriteLine("Roleplay Edition");
             Console.ForegroundColor = ConsoleColor.Green;
 

@@ -80,36 +80,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 case "balance":
                     {
                         var This = session.GetRolePlay();
-                        if ((This.JobManager.Job == 3 && This.JobManager.Working) || This.onduty)
+                       
+                            var money = string.Format("{0:n0}", This.Storage.bankamount);
+                            if (This.Storage.bankamount == 1)
+                                This.roomUser.OnChat(0, "@x checks their bank balance and notices they have " + money + " dollar", false);
+                                else
                         {
-                            var User = session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(Convert.ToString(split[1]));
-                            var Target = User.GetClient().GetRolePlay();
-                            if (Target == This)
-                                return true;
-                            if (Target.Dead || Target.Jailed > 0 || Target.JailedSec > 0 || Target.Cuffed || Target.roomUser.Stunned > 0 || This.subCooldown > 0)
-                            {
-                                This.Responds();
-                                return true;
-                            }
-                            int dis = Math.Abs(This.roomUser.X - User.X) + Math.Abs(This.roomUser.Y - User.Y);
-                            if (dis >= 3)
-                            {
-                                session.SendWhisper("This user is too far away!");
-                                return true;
-                            }
-                            if (Target.Storage.openaccount == 0)
-                            {
-                                session.SendWhisper("This user does not have an account!");
-                                return true;
-                            }
-                            var money = string.Format("{0:n0}", Target.Storage.bankamount);
-                            if (Target.Storage.bankamount == 1)
-                                This.roomUser.OnChat(0, "@x You have a balance of " + money + " dollar", false);
-                            else This.roomUser.OnChat(0, "@x You have a balance of " + money + " dollars", false);
+                            This.client.SendWhisper("You need to setup a bank account at the bank before using this command!", 1);
+                        }
+                    
                             This.subCooldown = 5;
                         }
                         return true;
-                    }
+                    
                 #endregion
 
                 #region :deposit <amount>
@@ -1136,9 +1119,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                         }
                         if (User.IsPet)
                             session.GetRolePlay().HitBot(User.BotData.Id, true);
+
                         else if (User.IsBot)
+
                             session.GetRolePlay().HitBot(User.BotData.Id, false);
                         else session.GetRolePlay().Hit(User, false);
+                        session.GetRolePlay().AggressionCD = 90;
+              
                         return true;
                     }
                 #endregion
@@ -1487,6 +1474,51 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                     return true;
                 #endregion
 
+                #region stack height
+                case "sh":
+                    {
+
+                        if (!session.GetRolePlay().Room.CheckRights(session, false, false))
+                        {
+                            session.SendNotification("You don't have permission for the command `stack_height`");
+                            return true;
+                        }
+
+                        if (split[1].Length < 2)
+                        {
+                            session.SendWhisper("Please enter a numeric value or type ':sh -' to turn it off");
+                            return true;
+                        }
+
+                        if (split[1] == "-")
+                        {
+                            session.SendWhisper("Stack Height Disabled");
+                            session.GetHabbo().ForceHeight = -1;
+                            return true;
+                        }
+
+                        double value;
+                        bool checkIfParsable = Double.TryParse(split[1], out value);
+                        if (checkIfParsable == false)
+                        {
+                            session.SendWhisper("Please enter a numeric value or type ':sh -' to turn it off");
+                            return true;
+                        }
+
+
+                        double HeightValue = Convert.ToDouble(split[1]);
+                        if (HeightValue < 0 || HeightValue > 100)
+                        {
+                            session.SendWhisper("Please enter a value between 0 and 100");
+                            return true;
+                        }
+
+                        session.GetHabbo().ForceHeight = HeightValue;
+                        session.SendWhisper("Stack Height Is: " + Convert.ToString(HeightValue));
+                        return true;
+                    }
+                #endregion
+
                 #endregion
 
                 #region VIP Commands
@@ -1504,15 +1536,25 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                     {
                         var This = session.GetRolePlay();
 
-                        // This.SendWeb("{\"name\":\"911\"}");
-                        This.SendWeb("{\"name\":\"selectstun\"}");
-                        session.SendWhisper("trying to load itman..");
-                        //This.Say("This is a voice bubble!", true, Convert.ToInt32(split[1]));
+                        
+                      
+                        This.Say("This is a voice bubble!", true, Convert.ToInt32(split[1]));
 
                         return true;
                     }
 
-         
+                case "wep":
+                    {
+                        if (session.GetRolePlay().habbo.Rank < 8)
+                            return true;
+                        string id = Convert.ToString(split[1]);
+                        session.GetRolePlay().Inventory.Item1 = id;
+                        session.GetRolePlay().LoadStats(true);
+                        return true;
+                    }
+
+
+
 
             }
 

@@ -152,7 +152,7 @@ namespace Plus.HabboHotel.Users
         private InventoryComponent _inventoryComponent;
         public Dictionary<int, Relationship> Relationships;
         public ConcurrentDictionary<string, UserAchievement> Achievements;
-
+        public double ForceHeight;
         private readonly DateTime _timeCached;
         public List<int> MutedUsers;
         private SearchesComponent _navigatorSearches;

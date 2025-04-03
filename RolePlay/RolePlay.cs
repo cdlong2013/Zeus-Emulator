@@ -80,10 +80,14 @@ namespace Plus.RolePlay
         public int SoloWin;
         public int SoloLost;
         #endregion
-
+        
         #region Cooldowns/Timers
         public int Cooldown;
         public int subCooldown;
+        public int FarmCD;
+        public int AggressionCD;
+        public int CarrotTimer;
+      
         public int Cooldown2;
         public int Cooldown3;
         public int TurfTime;
@@ -219,6 +223,7 @@ namespace Plus.RolePlay
         public bool ExCon;
         public int FreeMoney = 600;
         public string stungun;
+        public bool CarrotPlucked;
         #endregion
 
         #region Dragons
@@ -739,7 +744,10 @@ namespace Plus.RolePlay
                             if (Swing == "swings their")
                                 at = "at";
                             if (Swing == "slaps")
+
                                 Say("" + Swing + " " + Target.habbo.Username + ", causing" + Damage + " damage", true);
+
+                            
                             else Say("" + Swing + " " + DamageType + " " + at + " " + Target.habbo.Username + ", causing " + Damage + " damage", true);
                             if (lockTarget != Target.habbo.Id)
                             {
@@ -748,7 +756,8 @@ namespace Plus.RolePlay
                                     SendWeb("{\"name\":\"lock\", \"lock\":\"false\"}");
                                 if (lockBot > 0)
                                     lockBot = 0;
-                                client.SendWhisper("Alvo bloqueado em: " + Target.habbo.Username + "");
+                                
+                                client.SendWhisper("Target locked on: " + Target.habbo.Username + "");
                             }
                         }
                         if (Target.Health < 1)
@@ -801,6 +810,7 @@ namespace Plus.RolePlay
                 {
                     Say("swings at " + Target.habbo.Username + ", but misses", true, 4);
                     Cooldown = 3;
+
                     UpdateEnergy(15, 1);
                     if (lockTarget != Target.habbo.Id)
                     {
@@ -839,17 +849,7 @@ namespace Plus.RolePlay
                     Responds();
                 else if (Room.Fight > 0)
                     GetClient().SendWhisper("You cannot fight at this location!");
-                else if (GP > 0)
-                {
-                    GPWarning += 1;
-                    if (GPWarning <= 2)
-                        GetClient().SendWhisper("You are protected by God Zeus, if you decide to continue you will lose your protection! Warning: " + GPWarning + "/2");
-                    else
-                    {
-                        GPTimer = 100;
-                        GP = 1;
-                    }
-                }
+               
                 else
                 {
                     if (AreUsersInRange(roomUser, Bot, 1))
@@ -1008,7 +1008,7 @@ namespace Plus.RolePlay
                         if (Bot.BotData.Health < 1)
                         {
                             Bot.BotData.Health = 0;
-                            Say("balança em " + Bot.BotData.Name + ", nocauteando-os", true);
+                            Say("swings at " + Bot.BotData.Name + ", knocking them out", true,4);
                             KillChange();
                             roomUser.Assault = 9999;
                             if (Bot.BotData.Name == "Thug1" || Bot.BotData.Name == "Thug2")
@@ -1029,7 +1029,7 @@ namespace Plus.RolePlay
                             Responds();
                         else
                         {
-                            Say("swings at " + Bot.BotData.Name + ", but misses", true);
+                            Say("swings at " + Bot.BotData.Name + ", but misses", true, 4);
                             UpdateEnergy(15, 1);
                             Cooldown = 3;
                             if (lockBot != Bot.BotData.Id)
@@ -1051,11 +1051,11 @@ namespace Plus.RolePlay
         }
         public void Stun(string name)
         {
-            //if (!Inventory.Equip1.Contains("stun"))
-            //{
-            //    GetClient().SendWhisper("You must equip a taser before performing this action.");
-            //    return;
-            //}
+            if (!Inventory.Equip1.Contains("stun"))
+            {
+                GetClient().SendWhisper("You must equip a taser before performing this action.");
+                return;
+            }
 
             if (subCooldown > 0 || Energy < 1)
             {
@@ -1187,7 +1187,7 @@ namespace Plus.RolePlay
                 if (Strength < 11)
                 {
                     Strength += 1;
-                    MaxHealth += 2;
+                    MaxHealth += 5;
                     Say("levels up their strength to level " + Strength + "", false);
                 }
                 GetClient().SendWhisper("You have increased your strength to level " + Level + "!");
@@ -1299,8 +1299,8 @@ namespace Plus.RolePlay
         {
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-             //   dbClient.RunQuery("UPDATE users SET home_room = '" + roomUser.RoomId + "' WHERE id = '" + habbo.Id + "'");
-               // dbClient.RunQuery("UPDATE stats SET roomx = '" + roomUser.X + "', roomy = '" + roomUser.Y + "', rotation = '" + roomUser.RotBody + "' WHERE id = '" + habbo.Id + "' LIMIT 1");
+                dbClient.RunQuery("UPDATE users SET home_room = '" + roomUser.RoomId + "' WHERE id = '" + habbo.Id + "'");
+                dbClient.RunQuery("UPDATE stats SET roomx = '" + roomUser.X + "', roomy = '" + roomUser.Y + "', rotation = '" + roomUser.RotBody + "' WHERE id = '" + habbo.Id + "' LIMIT 1");
             }
         }
         public void Responds()
@@ -1462,15 +1462,15 @@ namespace Plus.RolePlay
             XP += Amount;
             RPCache(4);
             XPSystem();
-            // todo if (Gang > 0)
-            //{
-            //    foreach (GameClient _client in habbo.GetClientManager()._clients.Values.ToList())
-            //    {
-            //        if (_client.GetRolePlay().Gang == Gang)
-            //            _client.GetRolePlay().GangManager.UpdateGang(Amount / 2);
-            //    }
-            //    GangManager.SaveGang();
-            //}
+             if (Gang > 0)
+            {
+                foreach (GameClient _client in habbo.GetClientManager()._clients.Values.ToList())
+                {
+                    if (_client.GetRolePlay().Gang == Gang)
+                        _client.GetRolePlay().GangManager.UpdateGang(Amount / 2);
+                }
+                GangManager.SaveGang();
+            }
             client.SendPacket(new HabboActivityPointNotificationComposer(0, 0));
             SendWeb("{\"name\":\"sidealert\", \"evnt\":\"xp\", \"xpalert\":\"" + Amount + "\"}");
         }
@@ -1846,7 +1846,7 @@ namespace Plus.RolePlay
                     habbo.GetClientManager().NorthTurf = null;
                 if (habbo.GetClientManager().WestTurf == GangManager.Name)
                     habbo.GetClientManager().WestTurf = null;
-                //   habbo.GetClientManager().GlobalGang(Gang, null, null, GangManager.Name);
+                  habbo.GetClientManager().GlobalGang(Gang, null, null, GangManager.Name);
             }
         }
         public void SaveGangStats()
@@ -1941,13 +1941,13 @@ namespace Plus.RolePlay
                     if (JobManager.Job == 7)
                         habbo.GetClientManager().Paramedics++;
                     #endregion
-                    //if (JobManager.Job == 1)
-                    //{
-                    //    SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"true\"}");
-                    //    if (Trade.Trading)
-                    //        client.SendWhisper("Você precisa parar de negociar para receber sua arma de choque");
-                    //    else Inventory.Additem(stungun);
-                    //}
+                    if (JobManager.Job == 1)
+                    {
+                        SendWeb("{\"name\":\"copbadge\", \"copbadge\":\"true\"}");
+                        if (Trade.Trading)
+                            client.SendWhisper("Você precisa parar de negociar para receber sua arma de choque");
+                        else Inventory.Additem(stungun);
+                    }
                     if (JobManager.Jobmin <= 0 && JobManager.Jobsec <= 0)
                         JobManager.Jobmin = 10;
                     Timer(JobManager.Jobmin, JobManager.Jobsec, "job");
@@ -2804,6 +2804,10 @@ namespace Plus.RolePlay
         public void Timer(int minutes, int seconds, string Event)
         {
             SendWeb("{\"name\":\"timer\", \"time\":\"" + minutes + "\", \"seconds\":\"" + seconds + "\", \"timerevent\":\"" + Event + "\"}");
+        }
+        public void AggressionTimer(int seconds, string EVent)
+        {
+            SendWeb("{\"name\":\"aggression\"");
         }
         public string JobTask(int id)
         {

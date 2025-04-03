@@ -491,7 +491,7 @@ namespace Plus.HabboHotel.GameClients
             foreach (GameClient client in this._clients.Values.ToList())
                 if ((client != null && client.GetRolePlay().Gang == gangid && gangid != 0) || client.GetRolePlay().GangManager.Name == gangname)
                     if (message != null)
-                        client.SendWhisper("[Gang Alert] " + message + " [" + name + "]", 3);
+                        client.SendWhisper("[Gang Alert] " + message + " [" + name + "]", 6);
         }
 
         public void CloseAll()

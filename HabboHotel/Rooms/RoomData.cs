@@ -64,7 +64,7 @@ namespace Plus.HabboHotel.Rooms
         public RoomData(int id,string caption, string modelName, string ownerName, int ownerId, string password, int score, string type, string access, int usersNow, int usersMax, int category, string description,
             string tags, string floor, string landscape, int allowPets, int allowPetsEating, int roomBlockingEnabled, int hideWall, int wallThickness, int floorThickness, string wallpaper, int muteSettings,
             int banSettings, int kickSettings, int chatMode, int chatSize, int chatSpeed, int extraFlood, int chatDistance, int tradeSettings, bool pushEnabled, bool pullEnabled, bool superPushEnabled,
-            bool superPullEnabled, bool enablesEnabled, bool respectedNotificationsEnabled, bool petMorphsAllowed, int groupId, int salePrice, bool layEnabled, RoomModel model)
+            bool superPullEnabled, bool enablesEnabled, bool respectedNotificationsEnabled, bool petMorphsAllowed, int groupId, int salePrice, bool layEnabled, int fight, int taxi, RoomModel model)
         {
             Id = id;
             Name = caption;

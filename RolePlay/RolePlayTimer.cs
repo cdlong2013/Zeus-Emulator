@@ -7,6 +7,7 @@ using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.RolePlay;
 using Plus.HabboHotel.Users.Inventory.Bots;
 using Plus.HabboHotel.Rooms.AI;
+using Org.BouncyCastle.Bcpg;
 
 namespace Plus.RolePlay.Timer
 {
@@ -31,10 +32,21 @@ namespace Plus.RolePlay.Timer
                 RP.Cooldown--;
                 if (RP.Cooldown2 > 0)
                     RP.Cooldown2--;
+                if (RP.AggressionCD > 0)
+                    RP.AggressionCD--;
+                //RP.client.SendWhisper("" + RP.AggressionCD + "");
+                
                 if (RP.Cooldown3 > 0)
                     RP.Cooldown3--;
                 if (RP.subCooldown > 0)
                     RP.subCooldown--;
+                if (RP.roomUser.CarrotTimer > 0)
+                    RP.roomUser.CarrotTimer--;
+                
+
+
+
+
                 if (RP.dubCooldown > 0)
                 RP.dubCooldown--;
                 if (RP.InteractingCD > 0)
@@ -56,6 +68,7 @@ namespace Plus.RolePlay.Timer
                         RP.UpdateCredits(4, true);
                     }
                 }
+                
                 if (RP.WeedTime > 0)
                 {
                     RP.WeedTime--;
@@ -902,6 +915,64 @@ namespace Plus.RolePlay.Timer
 
                     }
                 }
+
+
+
+
+
+               
+
+                if (RP.roomUser.CarrotID > 0)
+                {
+                    if (RP.roomUser.IsWalking)
+                    {
+                        foreach (Item item in RP.Room.GetRoomItemHandler().GetFloor.ToList())
+                            if (item.Id == RP.roomUser.CarrotID)
+                                item.Collect = false;
+                        RP.roomUser.CarrotID = 0;
+                        RP.roomUser.ApplyEffect(0);
+                    }
+                    RP.roomUser.CarrotTimer--;
+                   
+                    //RP.UpdateEnergy(1, 1);
+                    RP.UpdateEnergy(1, 0);
+
+                    if (RP.roomUser.CarrotTimer <= 0 && RP.roomUser.CarrotID > 0)
+                    {
+                        foreach (Item item in RP.Room.GetRoomItemHandler().GetFloor.ToList())
+                        {
+                            if (item.Id == RP.roomUser.CarrotID)
+
+                                RP.Room.GetRoomItemHandler().RemoveRoomItem(item, RP.habbo.Id);
+                            RP.roomUser.CarrotID = 0;
+                            RP.roomUser.CarrotTimer = 30;
+                            RP.roomUser.ApplyEffect(0);
+                            RP.XPSet(5);
+                            RP.Say("harvest one (1) carrot", true, 4);
+                            RP.Inventory.Additem("carrot");
+                            item.UpdateState();
+                            item.ExtraData = "1";
+                        }
+
+                    }
+                    else
+                        if (RP.roomUser.IsWalking && RP.roomUser.CarrotID > 0)
+                    {
+                        RP.roomUser.CarrotID = 0;
+                        RP.CarrotTimer = 80;
+                        RP.roomUser.ApplyEffect(0);
+
+                        RP.Say("stops harvesting the carrot", true, 4);
+                    }
+                }
+                
+               
+
+
+
+                // Rock Farming
+
+
                 if (RP.roomUser.RockID > 0)
                 {
                     if (RP.roomUser.IsWalking)
@@ -934,6 +1005,7 @@ namespace Plus.RolePlay.Timer
                         RP.Room.rocks--;
                     }
                 }
+
                 if (RP.InteractingItem > 0)
                 {
                     RP.InteractingTimer++;
@@ -946,8 +1018,8 @@ namespace Plus.RolePlay.Timer
                                 int money = PlusEnvironment.GetRandomNumber(1, 10);
                                 RP.UpdateCredits(money, true);
                                 if (money == 1)
-                                    RP.Say("finds " + money + " dollar", false);
-                                else RP.Say("finds " + money + " dollars", false);
+                                    RP.Say("finds " + money + " dollar", true, 4);
+                                else RP.Say("finds " + money + " dollars", true, 4);
                             }
                             else if (PlusEnvironment.GetRandomNumber(1, 100) >= 95)
                             {
@@ -979,7 +1051,7 @@ namespace Plus.RolePlay.Timer
                                 RP.Say("discovers a special item", false);
                             }
                             else
-                                RP.Say("finds nothing", false);
+                                RP.Say("finds nothing", true, 4);
                             RP.roomUser.ApplyEffect(0);
                             RP.InteractingCD = 300;
                         }
@@ -993,8 +1065,19 @@ namespace Plus.RolePlay.Timer
                         RP.InteractingTimer = 0;
                         RP.roomUser.ApplyEffect(0);
                         RP.Say("stops their search", false);
+                        
                     }
                 }
+
+             
+
+
+                // Farming Carrots
+
+
+
+                // End Carrot
+
                 if (RP.OfferTimer > 0)
                 {
                     RP.OfferTimer--;

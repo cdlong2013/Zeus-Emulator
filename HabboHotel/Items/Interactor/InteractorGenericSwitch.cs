@@ -1,4 +1,5 @@
 ﻿using MySqlX.XDevAPI;
+using Org.BouncyCastle.Bcpg;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Quests;
 using Plus.HabboHotel.Rooms.PathFinding;
@@ -64,6 +65,46 @@ namespace Plus.HabboHotel.Items.Interactor
             }
             #endregion
 
+            #region ATM
+            if (item.BaseItem == 52495249)
+            {
+                int Distance = Math.Abs(item.GetX - This.roomUser.X) + Math.Abs(item.GetY - This.roomUser.Y);
+                if (Distance <= 1 || This.CheckDiag(item.GetX, item.GetY, This.roomUser.X, This.roomUser.Y))
+                {
+                    This.SetRot(Rotation.Calculate(This.roomUser.X, This.roomUser.Y, item.GetX, item.GetY), false);
+                    if (This.Dead || This.Cuffed || This.roomUser.Stunned > 0 || This.atmCD > 0 || This.Health < 1)
+                    {
+                        This.Responds();
+                        return;
+                    }
+                    if (item.Rotation == 4 && This.roomUser.X == item.GetX && This.roomUser.Y - 1 == item.GetY)
+                    { }
+                    else if (item.Rotation == 2 && This.roomUser.Y == item.GetY && This.roomUser.X - 1 == item.GetX)
+                    { }
+                    else
+                    {
+                        session.SendWhisper("You need to be in front of this item to perform this action!");
+                        return;
+                    }
+                    if (This.Storage.openaccount > 0)
+                    {
+                        This.roomUser.IsWalking = false;
+                        This.roomUser.RemoveStatus("mv");
+                        This.SendWeb("{\"name\":\"atm\", \"title\":\"" + This.habbo.Username.ToUpper() + "\"}");
+                        This.InteractATM = item.Id;
+                        session.SendWhisper("There is a 15% fee on all transactions!");
+                        This.actionpoint = true;
+                    }
+                    else session.SendWhisper("You need to open a bank account before you can use an ATM!",1);
+        
+                    This.roomUser.ClearMovement(true);
+                    return;
+                }
+                else This.roomUser.MoveTo(item.SquareInFront);
+                return;
+            }
+            #endregion
+
             #region Farm
             if (item.BaseItem == 4552) // carrot
             {
@@ -73,13 +114,35 @@ namespace Plus.HabboHotel.Items.Interactor
                     This.SetRot(Rotation.Calculate(This.roomUser.X, This.roomUser.Y, item.GetX, item.GetY), false);
                     if (This.Inventory.IsInventoryFull("carrot"))
                     {
-                        This.GetClient().SendWhisper("Your inventory is currently full!");
+                        This.GetClient().SendWhisper("Your inventory is currently full!", 1);
                         return;
                     }
-                    This.Room.GetRoomItemHandler().RemoveRoomItem(item, This.habbo.Id);
-                    This.Inventory.Additem("carrot");
-                    This.Say("plucks a fresh carrot from the ground", false);
-                    This.roomUser.ClearMovement(true);
+                    if (This.InteractingItem == item.Id)
+                    {
+                        session.SendWhisper("This carrot is being harvested by someone else!",1);
+                        return;
+                    }
+                    if (This.Dead || This.Energy < 1 || This.Cuffed || This.Health < 1)
+                    {
+                        This.Responds();
+                        return;
+                    }
+                    if (item.ExtraData == "1")
+                    {
+                        session.SendWhisper("This carrot has already been picked, you will have to try again later.",1);
+                        return;
+                    }
+                    if (This.roomUser.CarrotID == 0)
+                    {
+                        This.roomUser.CarrotID = item.BaseItem;
+                        This.Say("begins harvesting a carrot from the ground", true, 4);
+                        This.roomUser.ApplyEffect(594);
+                        item.UpdateState();
+                        This.roomUser.CarrotTimer = 80;
+                        This.roomUser.CarrotTimer--;
+                    }
+                   
+                   
                     return;
                 }
 

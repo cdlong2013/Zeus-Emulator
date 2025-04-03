@@ -531,131 +531,131 @@ namespace Plus.RolePlay.Inventory
                         RP.Responds();
                         return;
                     }
-                    RP.Say("hops on their skateboard", false);
+                    RP.Say("hops on their skateboard", true, 4);
                 }
                 else if (Item == "apple")
-                    RP.Say("takes out a fresh apple from their inventory", false);
+                    RP.Say("takes out a fresh apple from their inventory", true, 4);
                 else if (Item == "apple")
-                    RP.Say("takes out a slice of cheese from their inventory", false);
+                    RP.Say("takes out a slice of cheese from their inventory", true, 4);
                 else if (Item == "banana")
-                    RP.Say("takes out a fresh banana from their inventory", false);
+                    RP.Say("takes out a fresh banana from their inventory", true, 4);
                 else if (Item == "beatroot")
-                    RP.Say("takes out a beatroot from their inventory", false);
+                    RP.Say("takes out a beatroot from their inventory", true,4);
                 else if (Item == "blackberry")
-                    RP.Say("takes out a black berry from their inventory", false);
+                    RP.Say("takes out a black berry from their inventory", true,4);
                 else if (Item == "cake")
-                    RP.Say("takes out a slice of cake from their inventory", false);
+                    RP.Say("takes out a slice of cake from their inventory", true,4);
                 else if (Item == "chicken")
-                    RP.Say("takes out a cooked chicken from their inventory", false);
+                    RP.Say("takes out a cooked chicken from their inventory", true,4);
                 else if (Item == "cookbook")
-                    RP.Say("takes out a cooking book from their inventory", false);
+                    RP.Say("takes out a cooking book from their inventory", true,4);
                 else if (Item == "egg")
-                    RP.Say("takes out an egg from their inventory", false);
+                    RP.Say("takes out an egg from their inventory", true,4);
                 else if (Item == "fish")
-                    RP.Say("takes out a raw fish from their inventory", false);
+                    RP.Say("takes out a raw fish from their inventory", true,4);
                 else if (Item == "grapes")
-                    RP.Say("takes out a sum of white grapes from their inventory", false);
+                    RP.Say("takes out a sum of white grapes from their inventory", true, 4);
                 else if (Item == "lemon")
-                    RP.Say("takes out a fresh lemon from their inventory", false);
+                    RP.Say("takes out a fresh lemon from their inventory", true, 4);
                 else if (Item == "mushroom")
-                    RP.Say("takes out a fresh mushroom from their inventory", false);
+                    RP.Say("takes out a fresh mushroom from their inventory", true, 4);
                 else if (Item == "orange")
-                    RP.Say("takes out an orange from their inventory", false);
+                    RP.Say("takes out an orange from their inventory", true, 4);
                 else if (Item == "pear")
-                    RP.Say("takes out a pear fruit from their inventory", false);
+                    RP.Say("takes out a pear fruit from their inventory", true, 4);
                 else if (Item == "pineapple")
-                    RP.Say("takes out a pineapple from their inventory", false);
+                    RP.Say("takes out a pineapple from their inventory", true, 4);
                 else if (Item == "purple_grapes")
-                    RP.Say("takes out a sum of purple grapes from their inventory", false);
+                    RP.Say("takes out a sum of purple grapes from their inventory", true, 4);
                 else if (Item == "raw_chicken")
-                    RP.Say("takes out a raw chicken from their inventory", false);
+                    RP.Say("takes out a raw chicken from their inventory", true, 4);
                 else if (Item == "raw_stake")
-                    RP.Say("takes out a raw stake from their inventory", false);
+                    RP.Say("takes out a raw stake from their inventory", true, 4);
                 else if (Item == "stake")
-                    RP.Say("takes out a cooked stake from their inventory", false);
+                    RP.Say("takes out a cooked stake from their inventory", true, 4);
                 else if (Item == "strawberry")
-                    RP.Say("takes out a strawberry from their inventory", false);
+                    RP.Say("takes out a strawberry from their inventory", true, 4);
                 else if (Item == "tomato")
-                    RP.Say("takes out a fresh tomato from their inventory", false);
+                    RP.Say("takes out a fresh tomato from their inventory", true, 4);
                 else if (Item == "watermelon")
-                    RP.Say("takes out a slice of watermelon from their inventory", false);
+                    RP.Say("takes out a slice of watermelon from their inventory", true, 4);
                 else if (Item == "weed")
-                    RP.Say("takes out a stash of weed from their inventory", false);
+                    RP.Say("takes out a stash of weed from their inventory", true, 4);
                 else if (Item == "medic")
-                    RP.Say("takes out a medkit from their inventory", false);
+                    RP.Say("takes out a medkit from their inventory", true, 4);
                 else if (Item == "snack")
-                    RP.Say("takes out a bag of chips from their inventory", false);
+                    RP.Say("takes out a bag of chips from their inventory", true, 4);
                 else if (Item == "akorn")
-                    RP.Say("takes out an akorn from their inventory", false);
+                    RP.Say("takes out an akorn from their inventory", true, 4);
                 else if (Item == "bread")
-                    RP.Say("takes out a loaf of bread from their inventory", false);
+                    RP.Say("takes out a loaf of bread from their inventory", true, 4);
                 else if (Item == "cooked_egg")
-                    RP.Say("takes out a cooked egg from their inventory", false);
+                    RP.Say("takes out a cooked egg from their inventory", true, 4);
                 else if (Item == "cooked_fish")
-                    RP.Say("takes out a cooked fish from their inventory", false);
+                    RP.Say("takes out a cooked fish from their inventory", true, 4);
                 else if (Item == "cookie")
-                    RP.Say("takes out a cookie from their inventory", false);
+                    RP.Say("takes out a cookie from their inventory", true,4);
                 else if (Item == "green_pepper")
-                    RP.Say("takes out a green pepper from their inventory", false);
+                    RP.Say("takes out a green pepper from their inventory", true, 4);
                 else if (Item == "yellow_pepper")
-                    RP.Say("takes out a yellow pepper from their inventory", false);
+                    RP.Say("takes out a yellow pepper from their inventory", true, 4);
                 else if (Item == "red_pepper")
-                    RP.Say("takes out a red pepper from their inventory", false);
+                    RP.Say("takes out a red pepper from their inventory", true, 4);
                 else if (Item == "meat")
-                    RP.Say("takes out a piece of meat from their inventory", false);
+                    RP.Say("takes out a piece of meat from their inventory", true, 4);
                 else if (Item == "raw_meat")
-                    RP.Say("takes out a piece of raw meat from their inventory", false);
+                    RP.Say("takes out a piece of raw meat from their inventory", true, 4);
                 else if (Item == "green_pepper")
-                    RP.Say("takes out a green pepper from their inventory", false);
+                    RP.Say("takes out a green pepper from their inventory", true, 4);
                 else if (Item == "seed")
-                    RP.Say("takes out a plant " + Item + " from their inventory", false);
+                    RP.Say("takes out a plant " + Item + " from their inventory", true, 4);
                 else if (Item == "carrot" || Item == "flower")
-                    RP.Say("takes out a " + Item + " from their inventory", false);
+                    RP.Say("takes out a " + Item + " from their inventory", true, 4);
                 else if (Item == "chocolate")
-                    RP.Say("takes out a " + Item + " bar from their inventory", false);
+                    RP.Say("takes out a " + Item + " bar from their inventory", true, 4);
                 else if (Item == "cheese")
-                    RP.Say("takes out a slice of " + Item + " from their inventory", false);
+                    RP.Say("takes out a slice of " + Item + " from their inventory", true, 4);
                 else if (Item.Contains("kevlar"))
-                    RP.Say("puts on their kevlar vest", false);
+                    RP.Say("puts on their kevlar vest", true, 4);
                 else if (Item.Contains("stun"))
-                    RP.Say("pulls out their stun-gun", false);
+                    RP.Say("pulls out their stun-gun", true, 4);
                 else if (Item == "battle_axe")
-                    RP.Say("pulls out their battle axe", false);
+                    RP.Say("pulls out their battle axe", true, 4);
                 else if (Item == "chain_stick")
-                    RP.Say("pulls out their chain stick", false);
+                    RP.Say("pulls out their chain stick", true, 4);
                 else if (Item == "fishing_rod")
-                    RP.Say("pulls out their fishing rod", false);
+                    RP.Say("pulls out their fishing rod", true, 4);
                 else if (Item == "iron_bat")
-                    RP.Say("pulls out their iron bat", false);
+                    RP.Say("pulls out their iron bat", true, 4);
                 else if (Item == "gold_bat")
-                    RP.Say("pulls out their golden bat", false);
+                    RP.Say("pulls out their golden bat", true, 4);
                 else if (Item == "gold_battleaxe")
-                    RP.Say("pulls out their golden battle axe", false);
+                    RP.Say("pulls out their golden battle axe", true, 4);
                 else if (Item == "gold_chainstick")
-                    RP.Say("pulls out their golden chain stick", false);
+                    RP.Say("pulls out their golden chain stick", true, 4);
                 else if (Item == "gold_crowbar")
-                    RP.Say("pulls out their golden crowbar", false);
+                    RP.Say("pulls out their golden crowbar", true, 4);
                 else if (Item == "gold_lightsaber")
-                    RP.Say("pulls out their golden lightsaber", false);
+                    RP.Say("pulls out their golden lightsaber", true, 4);
                 else if (Item == "gold_longsword")
-                    RP.Say("pulls out their golden sword", false);
+                    RP.Say("pulls out their golden sword", true, 4);
                 else if (Item == "gold_pipe")
-                    RP.Say("pulls out their golden pipe", false);
+                    RP.Say("pulls out their golden pipe", true, 4);
                 else if (Item == "gold_poweraxe")
-                    RP.Say("pulls out their golden power axe", false);
+                    RP.Say("pulls out their golden power axe", true, 4);
                 else if (Item == "gold_spikeball")
-                    RP.Say("pulls out their golden spike ball", false);
+                    RP.Say("pulls out their golden spike ball", true, 4);
                 else if (Item == "lightsaber")
-                    RP.Say("pulls out their light saber", false);
+                    RP.Say("pulls out their light saber", true, 4);
                 else if (Item == "long_sword")
-                    RP.Say("pulls out their long sword", false);
+                    RP.Say("pulls out their long sword", true, 4);
                 else if (Item == "metal_pipe")
-                    RP.Say("pulls out their metal pipe", false);
+                    RP.Say("pulls out their metal pipe", true, 4);
                 else if (Item == "power_axe")
-                    RP.Say("pulls out their power axe", false);
+                    RP.Say("pulls out their power axe", true, 4);
                 else if (Item == "spike_ball")
-                    RP.Say("pulls out their spike ball", false);
-                else RP.Say("pulls out their " + Item + "", false);
+                    RP.Say("pulls out their spike ball", true, 4);
+                else RP.Say("pulls out their " + Item + "", true, 4);
                 RP.ItemCD = 5;
             }
         }

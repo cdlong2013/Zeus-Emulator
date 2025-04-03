@@ -53,6 +53,7 @@ namespace Plus.HabboHotel.Rooms
         public List<Vector2D> Path = new();
         public bool PathRecalcNeeded;
         public int PathStep = 1;
+        public bool CarrotPlucked;
         public Pet PetData;
 
         public int PrevTime;
@@ -120,6 +121,8 @@ namespace Plus.HabboHotel.Rooms
         internal int Losehealth;
         internal int RockID;
         internal int RockTimer;
+        internal int CarrotID;
+        internal int CarrotTimer;
         internal int delay;
         internal int delayroom;
         internal int cine_tile;
@@ -299,6 +302,8 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
         }
+
+
 
         public void HandleSpamTicks()
         {

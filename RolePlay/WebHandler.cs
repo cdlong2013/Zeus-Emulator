@@ -1378,13 +1378,13 @@ namespace Plus.RolePlay.WebHandle
                         ganghits = Target.punches2;
                         gangdate = Target.GangDate;
                         turf = Target.captures;
-                        string editdate = gangdate.Substring(0, 2);
-                        if (editdate.Contains("-"))
-                        {
-                            editdate = gangdate.Substring(0, 1);
-                            gangdate = RP.datecheck(Convert.ToInt32(editdate)) + gangdate.Substring(1);
-                        }
-                        else gangdate = RP.datecheck(Convert.ToInt32(editdate)) + gangdate.Substring(2);
+                        //string editdate = gangdate.Substring(0, 2);
+                        //if (editdate.Contains("-"))
+                        //{
+                        //    editdate = gangdate.Substring(0, 1);
+                        //    gangdate = RP.datecheck(Convert.ToInt32(editdate)) + gangdate.Substring(1);
+                        //}
+                        //else gangdate = RP.datecheck(Convert.ToInt32(editdate)) + gangdate.Substring(2);
                     }
                     if (Target.HasPet > 0)
                     {
@@ -3883,150 +3883,151 @@ namespace Plus.RolePlay.WebHandle
         public void Marco(string Event, string Data, string ExtraData)
         {
             #region marco
-            /*
+            
             if (Event == "marcoswitch")
             {
                 if (ExtraData == "1")
-                    Marco = true;
-                else Marco = false;
+                    RP.Marco = true;
+                else RP.Marco = false;
             }
             if (Event == "marco")
-                SendWeb("{\"name\":\"marco\", \"key1_1\":\"" + marco1_1 + "\", \"key1_2\":\"" + marco1_2 + "\","
-                    + "\"key2_1\":\"" + marco2_1 + "\", \"key2_2\":\"" + marco2_2 + "\", \"key3_1\":\"" + marco3_1 + "\","
-                    + "\"key3_2\":\"" + marco3_2 + "\", \"key4_1\":\"" + marco4_1 + "\", \"key4_2\":\"" + marco4_2 + "\","
-        + "\"key5_1\":\"" + marco5_1 + "\", \"key5_2\":\"" + marco5_2 + "\"}");
+                RP.SendWeb("{\"name\":\"marco\", \"key1_1\":\"" + RP.marco1_1 + "\", \"key1_2\":\"" + RP.marco1_2 + "\","
+                    + "\"key2_1\":\"" + RP.marco2_1 + "\", \"key2_2\":\"" + RP.marco2_2 + "\", \"key3_1\":\"" + RP.marco3_1 + "\","
+                    + "\"key3_2\":\"" + RP.marco3_2 + "\", \"key4_1\":\"" + RP.marco4_1 + "\", \"key4_2\":\"" + RP.marco4_2 + "\","
+        + "\"key5_1\":\"" + RP.marco5_1 + "\", \"key5_2\":\"" + RP.marco5_2 + "\"}");
             if (Event == "marcokey")
             {
                 if (String.IsNullOrEmpty(Data) || String.IsNullOrEmpty(ExtraData))
                     return;
-                if (marco5_1 != "null")
+                if (RP.marco5_1 != "null")
                 {
-                    client.SendWhisper("You can only add up to 5 marco keys!");
+                    RP.client.SendWhisper("You can only add up to 5 marco keys!");
                     return;
                 }
                 if ((ExtraData == "null" || ExtraData == "Null") || (Data == "null" || Data == "Null"))
                 {
-                    client.SendWhisper("Invalid marco!");
+                    RP.client.SendWhisper("Invalid marco!");
                     return;
                 }
                 if (ExtraData.Length > 15 || Data.Length > 15)
                 {
-                    client.SendWhisper("This marco is too long!");
+                    RP.client.SendWhisper("This marco is too long!");
                     return;
                 }
-                if ((Data == marco1_1 || Data == marco2_1 ||
-                    Data == marco3_1 || Data == marco4_1 ||
-                    Data == marco5_1) || (ExtraData == marco1_2 ||
-                    ExtraData == marco2_2 || ExtraData == marco3_2 ||
-                    ExtraData == marco4_2 || ExtraData == marco5_2))
+                if ((Data == RP.marco1_1 || Data == RP.marco2_1 ||
+                    Data == RP.marco3_1 || Data == RP.marco4_1 ||
+                    Data == RP.marco5_1) || (ExtraData == RP.marco1_2 ||
+                    ExtraData == RP.marco2_2 || ExtraData == RP.marco3_2 ||
+                    ExtraData == RP.marco4_2 || ExtraData == RP.marco5_2))
                 {
-                    client.SendWhisper("You can not add duplicate marco keys!");
+                    RP.client.SendWhisper("You can not add duplicate marco keys!");
                     return;
                 }
-                if (marco1_1 == "null")
+                if (RP.marco1_1 == "null")
                 {
-                    marco1_1 = Data;
-                    marco1_2 = ExtraData;
+                    RP.marco1_1 = Data;
+                    RP.marco1_2 = ExtraData;
                 }
-                else if (marco2_1 == "null")
+                else if (RP.marco2_1 == "null")
                 {
-                    marco2_1 = Data;
-                    marco2_2 = ExtraData;
+                    RP.marco2_1 = Data;
+                    RP.marco2_2 = ExtraData;
                 }
-                else if (marco3_1 == "null")
+                else if (RP.marco3_1 == "null")
                 {
-                    marco3_1 = Data;
-                    marco3_2 = ExtraData;
+                    RP.marco3_1 = Data;
+                    RP.marco3_2 = ExtraData;
                 }
-                else if (marco4_1 == "null")
+                else if (RP.marco4_1 == "null")
                 {
-                    marco4_1 = Data;
-                    marco4_2 = ExtraData;
+                    RP.marco4_1 = Data;
+                    RP.marco4_2 = ExtraData;
                 }
-                else if (marco5_1 == "null")
+                else if (RP.marco5_1 == "null")
                 {
-                    marco5_1 = Data;
-                    marco5_2 = ExtraData;
+                    RP.marco5_1 = Data;
+                    RP.marco5_2 = ExtraData;
                 }
-                SaveMarco();
-                WebHandle("marco", "", "");
+                RP.SaveMarco();
+                //WebHandle("marco", "", "");
+      
 
             }
             if (Event == "marcodelete")
             {
                 if (ExtraData == "1")
                 {
-                    marco1_1 = "null";
-                    marco1_2 = "null";
-                    if (marco2_1 != "null")
+                    RP.marco1_1 = "null";
+                    RP.marco1_2 = "null";
+                    if (RP.marco2_1 != "null")
                     {
-                        marco1_1 = marco2_1;
-                        marco1_2 = marco2_2;
-                        marco2_1 = marco3_1;
-                        marco2_2 = marco3_2;
-                        marco3_1 = marco4_1;
-                        marco3_2 = marco4_2;
-                        marco4_1 = marco5_1;
-                        marco4_2 = marco5_2;
-                        marco5_1 = "null";
-                        marco5_2 = "null";
+                        RP.marco1_1 = RP.marco2_1;
+                        RP.marco1_2 = RP.marco2_2;
+                        RP.marco2_1 = RP.marco3_1;
+                        RP.marco2_2 = RP.marco3_2;
+                        RP.marco3_1 = RP.marco4_1;
+                        RP.marco3_2 = RP.marco4_2;
+                        RP.marco4_1 = RP.marco5_1;
+                        RP.marco4_2 = RP.marco5_2;
+                        RP.marco5_1 = "null";
+                        RP.marco5_2 = "null";
 
                     }
                 }
                 else if (ExtraData == "2")
                 {
-                    marco2_1 = "null";
-                    marco2_2 = "null";
-                    if (marco3_1 != "null")
+                    RP.marco2_1 = "null";
+                    RP.marco2_2 = "null";
+                    if (RP.marco3_1 != "null")
                     {
-                        marco2_1 = marco3_1;
-                        marco2_2 = marco3_2;
-                        marco3_1 = marco4_1;
-                        marco3_2 = marco4_2;
-                        marco4_1 = marco5_1;
-                        marco4_2 = marco5_2;
-                        marco5_1 = "null";
-                        marco5_2 = "null";
+                        RP.marco2_1 = RP.marco3_1;
+                        RP.marco2_2 = RP.marco3_2;
+                        RP.marco3_1 = RP.marco4_1;
+                        RP.marco3_2 = RP.marco4_2;
+                        RP.marco4_1 = RP.marco5_1;
+                        RP.marco4_2 = RP.marco5_2;
+                        RP.marco5_1 = "null";
+                        RP.marco5_2 = "null";
 
                     }
                 }
                 else if (ExtraData == "3")
                 {
-                    marco3_1 = "null";
-                    marco3_2 = "null";
-                    if (marco4_1 != "null")
+                    RP.marco3_1 = "null";
+                    RP.marco3_2 = "null";
+                    if (RP.marco4_1 != "null")
                     {
-                        marco3_1 = marco4_1;
-                        marco3_2 = marco4_2;
-                        marco4_1 = marco5_1;
-                        marco4_2 = marco5_2;
-                        marco5_1 = "null";
-                        marco5_2 = "null";
+                        RP.marco3_1 = RP.marco4_1;
+                        RP.marco3_2 = RP.marco4_2;
+                        RP.marco4_1 = RP.marco5_1;
+                        RP.marco4_2 = RP.marco5_2;
+                        RP.marco5_1 = "null";
+                        RP.marco5_2 = "null";
 
                     }
                 }
                 else if (ExtraData == "4")
                 {
-                    marco4_1 = "null";
-                    marco4_2 = "null";
+                    RP.marco4_1 = "null";
+                    RP.marco4_2 = "null";
 
-                    if (marco5_1 != "null")
+                    if (RP.marco5_1 != "null")
                     {
-                        marco4_1 = marco5_1;
-                        marco4_2 = marco5_2;
-                        marco5_1 = "null";
-                        marco5_2 = "null";
+                        RP.marco4_1 = RP.marco5_1;
+                        RP.marco4_2 = RP.marco5_2;
+                        RP.marco5_1 = "null";
+                        RP.marco5_2 = "null";
                     }
                 }
                 else if (ExtraData == "5")
                 {
-                    marco5_1 = "null";
-                    marco5_2 = "null";
+                    RP.marco5_1 = "null";
+                    RP.marco5_2 = "null";
                 }
-                SaveMarco();
-                WebHandle("marco", "", "");
+                RP.SaveMarco();
+                //WebHandle("marco", "", "");
             }
-            */
+            
             #endregion
         }
 
